@@ -1,126 +1,96 @@
-<!-- Perfil - Página de configurações do usuário -->
 <?php
-// Incluir funções necessárias
 require_once __DIR__ . '/../funcoes/usuario.php';
 require_once __DIR__ . '/../funcoes/transacoes.php';
 require_once __DIR__ . '/../funcoes/configuracoes.php';
 
-// Determinar usuário
 $usuario_id = usuarioLogado() ? obterUsuarioId() : 1;
 if (usuarioLogado()) {
     $usuario_atual = obterDadosUsuario();
 } else {
-    // Buscar usuário padrão (id=1) do banco
     global $database;
     $sqlUsuario = "SELECT id, nome, email, foto_perfil FROM usuarios WHERE id = 1";
     $usuarios = $database->select($sqlUsuario);
     $usuario_atual = !empty($usuarios) ? $usuarios[0] : ['id' => 1, 'nome' => 'Usuário', 'email' => 'usuario@email.com'];
 }
 
-// Obter saldo total real do banco
 $saldo_total = calcularSaldoTotal($usuario_id);
-// Configurações para símbolo de moeda
 $configuracoes = lerConfiguracoes($usuario_id);
 $simbolo_moeda = $configuracoes['preferencias']['simbolo_moeda'] ?? 'R$';
 function formatar_moeda_php($valor, $simbolo = 'R$') {
     return $simbolo . ' ' . number_format((float)$valor, 2, ',', '.');
 }
+$nome_usuario = $usuario_atual['nome'] ?? 'Usuário';
+$foto_usuario = $usuario_atual['foto_perfil'] ?? '';
+$url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/api/?name=' . urlencode($nome_usuario) . '&background=fbbf24&color=000');
 ?>
 <div class="pagina-perfil">
     <div class="container">
-        <!-- Header do Perfil -->
-        <div class="perfil-header">
-            <div class="perfil-background"></div>
-            <div class="perfil-content">
-                <div class="avatar-container">
-                    <div class="avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="avatar-badge">
-                        <i class="fas fa-check"></i>
-                    </div>
+        <div class="perfil-resumo card">
+            <div class="perfil-resumo-left">
+                <div class="perfil-resumo-avatar">
+                    <img src="<?php echo htmlspecialchars($url_avatar_perfil); ?>" alt="Avatar" class="perfil-resumo-avatar-img">
                 </div>
-                
-                <div class="user-info">
-                    <h1 id="nome-usuario"><?php echo htmlspecialchars($usuario_atual['nome'] ?? 'Usuário'); ?></h1>
+                <div class="perfil-resumo-info">
+                    <h1 id="nome-usuario"><?php echo htmlspecialchars($nome_usuario); ?></h1>
                     <p id="email-usuario"><?php echo htmlspecialchars($usuario_atual['email'] ?? 'usuario@email.com'); ?></p>
-                    <div class="saldo-card">
-                    <div class="saldo-label">Saldo Total</div>
-                    <div class="saldo-valor <?php echo ($saldo_total >= 0) ? 'positivo' : 'negativo'; ?>" id="saldo-total">
-                        <?php echo htmlspecialchars(formatar_moeda_php($saldo_total, $simbolo_moeda)); ?>
-                    </div>
+                </div>
+            </div>
+            <div class="perfil-resumo-saldo">
+                <div class="saldo-label">Saldo Total</div>
+                <div class="saldo-valor <?php echo ($saldo_total >= 0) ? 'positivo' : 'negativo'; ?>" id="saldo-total">
+                    <?php echo htmlspecialchars(formatar_moeda_php($saldo_total, $simbolo_moeda)); ?>
                 </div>
             </div>
         </div>
+
+        <div class="perfil-section">
+            <div class="perfil-section-title">Configurações</div>
+            <div class="perfil-list">
+                <button class="perfil-item" onclick="abrirModalEditarPerfil()">
+                    <div class="perfil-item-icon"><i class="fas fa-user-edit"></i></div>
+                    <div class="perfil-item-content">
+                        <div class="perfil-item-title">Editar Perfil</div>
+                        <div class="perfil-item-desc">Alterar dados pessoais</div>
+                    </div>
+                    <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </button>
+                <button class="perfil-item" onclick="alternarTema()">
+                    <div class="perfil-item-icon"><i class="fas fa-palette"></i></div>
+                    <div class="perfil-item-content">
+                        <div class="perfil-item-title">Tema</div>
+                        <div class="perfil-item-desc">Alternar aparência</div>
+                    </div>
+                    <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </button>
+                <button class="perfil-item" onclick="exportarDados()">
+                    <div class="perfil-item-icon"><i class="fas fa-download"></i></div>
+                    <div class="perfil-item-content">
+                        <div class="perfil-item-title">Exportar Dados</div>
+                        <div class="perfil-item-desc">Baixar informações</div>
+                    </div>
+                    <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </button>
+                <button class="perfil-item" onclick="abrirAssinatura()">
+                    <div class="perfil-item-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="perfil-item-content">
+                        <div class="perfil-item-title">Assinatura</div>
+                        <div class="perfil-item-desc">Ver e gerenciar</div>
+                    </div>
+                    <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </button>
+            </div>
         </div>
-
-        <!-- Menu de Opções -->
-        <div class="opcoes-menu">
-            <div class="opcoes-grid">
-                <div class="opcao-card" onclick="abrirModalEditarPerfil()">
-                    <div class="opcao-icon edit">
-                        <i class="fas fa-user-edit"></i>
+        <div class="perfil-section">
+            <div class="perfil-section-title">Conta</div>
+            <div class="perfil-list">
+                <button class="perfil-item perfil-item-danger" onclick="fazerLogout()">
+                    <div class="perfil-item-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="perfil-item-content">
+                        <div class="perfil-item-title">Sair</div>
+                        <div class="perfil-item-desc">Encerrar sessão</div>
                     </div>
-                    <div class="opcao-content">
-                        <h3>Editar Perfil</h3>
-                        <p>Alterar dados pessoais</p>
-                    </div>
-                    <div class="opcao-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-                
-                <div class="opcao-card" onclick="alternarTema()">
-                    <div class="opcao-icon theme">
-                        <i class="fas fa-palette" id="toggle-tema"></i>
-                    </div>
-                    <div class="opcao-content">
-                        <h3>Tema</h3>
-                        <p>Alternar aparência</p>
-                    </div>
-                    <div class="opcao-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-                
-                <div class="opcao-card" onclick="exportarDados()">
-                    <div class="opcao-icon export">
-                        <i class="fas fa-download"></i>
-                    </div>
-                    <div class="opcao-content">
-                        <h3>Exportar Dados</h3>
-                        <p>Baixar informações</p>
-                    </div>
-                    <div class="opcao-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-
-                <div class="opcao-card" onclick="abrirAssinatura()">
-                    <div class="opcao-icon assinatura">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                    <div class="opcao-content">
-                        <h3>Assinatura</h3>
-                        <p>Ver e gerenciar</p>
-                    </div>
-                    <div class="opcao-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-                
-                <div class="opcao-card logout" onclick="fazerLogout()">
-                    <div class="opcao-icon logout-icon">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </div>
-                    <div class="opcao-content">
-                        <h3>Sair</h3>
-                        <p>Encerrar sessão</p>
-                    </div>
-                    <div class="opcao-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
+                    <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </button>
             </div>
         </div>
 

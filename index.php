@@ -1,25 +1,18 @@
 <?php
 require_once __DIR__ . '/config/config.php';
-// Inicializa sessão e funções de usuário antes de verificar login
 require_once 'funcoes/usuario.php';
 
-// Redireciona para login se não estiver autenticado
 if (!usuarioLogado()) {
     header('Location: login.php');
     exit;
 }
 
-// Incluir funções
 require_once 'funcoes/transacoes.php';
 require_once 'funcoes/categorias.php';
-
-// Obter dados do usuário logado ou usar dados padrão
-
 
 if (usuarioLogado()) {
     $usuario_atual = obterDadosUsuario();
 } else {
-    // Dados padrão para desenvolvimento
     $usuario_atual = [
         'id' => 1,
         'nome' => 'Usuário Teste',
@@ -27,15 +20,12 @@ if (usuarioLogado()) {
     ];
 }
 
-// Página inicial a ser exibida (suporta acesso direto via URL ?pagina=...)
 $pagina_inicial = isset($_GET['pagina']) ? preg_replace('/[^a-z_]/', '', $_GET['pagina']) : '';
 
-// Se não houver query, tentar recuperar da cookie para evitar flicker
 if ($pagina_inicial === '' && isset($_COOKIE['paginaAtual'])) {
     $cookiePagina = preg_replace('/[^a-z_]/', '', $_COOKIE['paginaAtual']);
     $paginasPermitidas = ['dashboard','transacoes','categorias','perfil','admin'];
     if (in_array($cookiePagina, $paginasPermitidas, true)) {
-        // Se for admin mas usuário não tem permissão, cai para dashboard
         if ($cookiePagina === 'admin' && (!isset($_SESSION['perfil']) || $_SESSION['perfil'] !== 'admin')) {
             $pagina_inicial = 'dashboard';
         } else {
@@ -59,10 +49,7 @@ if (!file_exists($arquivo_pagina_inicial)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanças Pessoais</title>
     
-    <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- Estilos CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
     <script>
         (function(){
@@ -134,6 +121,29 @@ if (!file_exists($arquivo_pagina_inicial)) {
     })();
     </script>
     <div id="app">
+        <header class="app-header">
+            <?php
+            $dados_usuario = isset($usuario_atual) ? $usuario_atual : obterDadosUsuario();
+            $nome_header = isset($dados_usuario['nome']) ? $dados_usuario['nome'] : (isset($_SESSION['usuario_nome']) ? $_SESSION['usuario_nome'] : 'Usuário');
+            $foto_header = isset($dados_usuario['foto_perfil']) ? $dados_usuario['foto_perfil'] : '';
+            $url_avatar_header = $foto_header ? $foto_header : ('https://ui-avatars.com/api/?name=' . urlencode($nome_header) . '&background=fbbf24&color=000');
+            ?>
+            <div class="app-header-left">
+                <div class="app-logo">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <div class="app-titles">
+                    <span class="app-title">PEAK</span>
+                    <span class="app-subtitle">Gestão Financeira</span>
+                </div>
+            </div>
+            <div class="app-header-right">
+                <button class="botao-ocultar" onclick="app.toggleOcultarValores()">
+                    <i class="fas" id="icone-ocultar"></i>
+                </button>
+                <img src="<?php echo htmlspecialchars($url_avatar_header); ?>" class="app-avatar" alt="Avatar">
+            </div>
+        </header>
         <!-- Conteúdo principal -->
         <div class="conteudo" id="conteudo-principal">
             <!-- Conteúdo carregado dinamicamente ou renderizado inicialmente -->
@@ -215,6 +225,8 @@ if (!file_exists($arquivo_pagina_inicial)) {
                     if (pagina === 'dashboard' && typeof window.app !== 'undefined') {
                         console.log('Inicializando dashboard...');
                         setTimeout(function() {
+                            window.app.configurarEventos();
+                            window.app.atualizarDescricaoPeriodo();
                             window.app.inicializarGraficos();
                         }, 100);
                     } else if (pagina === 'transacoes' && typeof window.inicializarTransacoes === 'function') {

@@ -1,5 +1,4 @@
 <?php
-// --- LÓGICA FUNCIONAL PHP ---
 require_once __DIR__ . '/../funcoes/transacoes.php';
 require_once __DIR__ . '/../funcoes/categorias.php';
 require_once __DIR__ . '/../funcoes/configuracoes.php';
@@ -92,26 +91,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
 
         <div id="view-dashboard" class="px-6 py-8 md:py-12 max-w-5xl mx-auto space-y-8 block animate-fade-in">
 
-            <div class="flex items-center justify-between mb-8">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 rounded-xl gold-gradient-bg flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20">
-                        <iconify-icon icon="mynaui:tree" width="24"></iconify-icon>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-semibold tracking-tight text-white leading-none">PEAK</span>
-                        <span class="text-xs text-amber-500 tracking-wide font-medium">Gestão Financeira</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button
-                        class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-                        onclick="app.toggleOcultarValores()">
-                        <i class="fas" id="icone-ocultar"></i>
-                    </button>
-                    <img src="<?php echo htmlspecialchars($url_avatar); ?>" class="w-10 h-10 rounded-full border border-white/10 shadow-xl">
-                </div>
-            </div>
+            <!-- Header global presente em index.php -->
 
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -119,9 +99,9 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
                     <p class="text-sm text-zinc-500 mt-1" id="descricao-periodo">Visão geral das suas finanças</p>
                 </div>
 
-                <div class="relative">
+                <div class="relative" id="seletor-bonito-periodo" style="overflow: visible;">
                     <button id="btn-seletor-periodo"
-                        class="px-4 py-2 text-xs font-medium text-zinc-300 bg-zinc-900 border border-white/10 rounded-full flex items-center gap-2 hover:border-amber-500/50 transition-colors">
+                        class="px-4 py-2 text-xs font-medium rounded-full flex items-center gap-2 transition-colors">
                         <span id="texto-seletor-periodo">Mês Atual</span>
                         <iconify-icon icon="solar:alt-arrow-down-linear"></iconify-icon>
                     </button>

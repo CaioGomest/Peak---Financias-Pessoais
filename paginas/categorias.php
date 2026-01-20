@@ -8,19 +8,15 @@ $tipo_filtro = in_array($tipo_parametro, ['receita', 'despesa']) ? $tipo_paramet
 $todas_categorias_servidor = obterCategorias($tipo_filtro, $usuario_id);
 $filtro_categorias_atual_servidor = $tipo_filtro ? $tipo_filtro : 'todos';
 
-// Definir base do link de forma robusta
 $script_atual = basename($_SERVER['SCRIPT_NAME']);
 $esta_no_index = ($script_atual === 'index.php');
 
-// Construir base absoluta da aplicação a partir da URI atual
 $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 $uri_sem_query = strtok($uri, '?');
 $base_app = $uri_sem_query;
-// Remover /index.php do final, se presente
 if (substr($base_app, -10) === '/index.php') {
     $base_app = substr($base_app, 0, -10);
 }
-// Remover subcaminhos como /paginas/ e /modais/
 $pos_paginas = strpos($base_app, '/paginas/');
 if ($pos_paginas !== false) {
     $base_app = substr($base_app, 0, $pos_paginas);
@@ -33,12 +29,10 @@ if (substr($base_app, -1) !== '/') {
     $base_app .= '/';
 }
 
-// Link base absoluto
 $base_link = $esta_no_index 
     ? ($base_app . 'index.php?pagina=categorias') 
     : ($base_app . 'paginas/categorias.php');
 
-// Helper para adicionar o parâmetro de tipo respeitando ? ou &
 function adicionarParametroTipo($base, $tipo) {
     return $base . (strpos($base, '?') !== false ? '&' : '?') . 'tipo=' . $tipo;
 }
@@ -65,7 +59,6 @@ function adicionarParametroTipo($base, $tipo) {
         }
     })();
     </script>
-    <!-- Navegação inferior (fallback quando fora do index.php) -->
     <nav class="menu-inferior">
         <a href="<?php echo $base_app; ?>index.php?pagina=dashboard" class="menu-item">
             <i class="fas fa-home"></i>
@@ -86,12 +79,10 @@ function adicionarParametroTipo($base, $tipo) {
         </a>
     </nav>
 
-    <!-- Overlay escuro e botão central (fallback) -->
     <div class="menu-overlay" id="menu-overlay"></div>
     <a href="#" class="botao-adicionar-central" onclick="toggleMenuCircular()">
         <i class="fas fa-plus"></i>
     </a>
-    <!-- Menu circular (fallback) -->
     <div class="menu-circular" id="menu-circular">
         <a href="#" class="opcao-menu receita" onclick="abrirModalTransacao('receita')" title="Nova Receita">
             <i class="fas fa-arrow-up"></i>
@@ -107,7 +98,6 @@ function adicionarParametroTipo($base, $tipo) {
         </a>
     </div>
     <script>
-        // Alternar exibição do menu circular no fallback
         function toggleMenuCircular() {
             var menu = document.getElementById('menu-circular');
             var overlay = document.getElementById('menu-overlay');
@@ -115,7 +105,6 @@ function adicionarParametroTipo($base, $tipo) {
             menu.classList.toggle('ativo');
             overlay.classList.toggle('ativo');
         }
-        // Fechar menu ao clicar no overlay
         (function(){
             var overlay = document.getElementById('menu-overlay');
             if (overlay) {
@@ -127,9 +116,7 @@ function adicionarParametroTipo($base, $tipo) {
         })();
     </script>
 <?php endif; ?>
-<!-- Página de Categorias Reestruturada -->
 <div class="pagina-categorias">
-    <!-- Header da Página -->
     <div class="categorias-header">
         <div class="categorias-background"></div>
         <div class="header-content">
@@ -149,7 +136,6 @@ function adicionarParametroTipo($base, $tipo) {
         </div>
     </div>
 
-    <!-- Filtros -->
     <div class="categorias-filtros">
         <div class="filtros-container">
             <a class="filtro-btn <?php echo ($filtro_categorias_atual_servidor === 'todos') ? 'ativo' : ''; ?>" data-tipo="todos" href="<?php echo $base_link; ?>">
@@ -167,13 +153,9 @@ function adicionarParametroTipo($base, $tipo) {
         </div>
     </div>
 
-    <!-- Lista de Categorias -->
     <div class="categorias-content">
         <div class="categorias-grid" id="lista-categorias-container">
-            <!-- As categorias serão carregadas aqui via JavaScript -->
         </div>
-        
-        <!-- Estado Vazio (oculto inicialmente) -->
         <div id="mensagem-vazia" class="estado-vazio" style="display: none;">
             <div class="vazio-ilustracao">
                 <div class="vazio-icon">
@@ -200,10 +182,6 @@ function adicionarParametroTipo($base, $tipo) {
 </div>
 
 <script>
-    // Funções para manipulação de categorias - definidas no escopo global
-    console.log('Funções de categoria carregadas...');
-
-    // Helper para compor URLs relativas ao diretório da aplicação
     function obterUrl(caminho) {
         var caminhoNormalizado = (caminho || '').replace(/^\//, '');
         var path = window.location.pathname || '';
@@ -225,73 +203,45 @@ function adicionarParametroTipo($base, $tipo) {
         window.abrirModalCategoria(categoria);
     };
 
-    // Removido salvarCategoria duplicado para evitar conflito com o modal
-    
-    // Dados vindos do servidor (evita flash e chamadas extras)
     var todasCategorias = <?php echo json_encode($todas_categorias_servidor, JSON_UNESCAPED_UNICODE); ?>;
     var filtroCategoriasAtual = '<?php echo $filtro_categorias_atual_servidor; ?>';
-    // Controlar estados de carregamento na UI
-    // (Sem necessidade de variável: usaremos elementos de DOM)
-    
-    // Função para carregar as categorias do banco de dados
     function carregarCategorias() {
-        console.log('Carregando categorias do banco de dados...');
-        
-        // Fazer requisição para obter categorias reais
         fetch(obterUrl('funcoes/transacoes.php?api=categorias&acao=listar'))
             .then(response => {
-
-                console.log('---------------------> Response categorias:', response);
-
-
-
-
-                console.log('Response categorias:', response.status, response.statusText);
                 if (!response.ok) {
                     throw new Error(`Erro ao buscar categorias: ${response.status}`);
                 }
                 return response.text();
             })
             .then(text => {
-                console.log('Texto da resposta categorias:', text.substring(0, 200));
                 try {
                     todasCategorias = JSON.parse(text);
-                    console.log('Categorias carregadas do banco:', todasCategorias.length, 'categorias');
                     renderizarCategorias();
                 } catch (e) {
-                    console.error('Erro ao fazer parse do JSON de categorias:', e);
-                    console.error('Texto recebido:', text);
-                    // Em caso de erro, mostrar mensagem vazia
                     todasCategorias = [];
                     renderizarCategorias();
                 }
             })
             .catch(error => {
-                console.error('Erro ao carregar categorias:', error);
-                // Em caso de erro, mostrar mensagem vazia
                 todasCategorias = [];
                 renderizarCategorias();
             });
     }
     
-    // Função para renderizar as categorias
     function renderizarCategorias() {
         var container = document.getElementById('lista-categorias-container');
         var mensagemVazia = document.getElementById('mensagem-vazia');
         
-        // Filtrar categorias baseado no filtro atual
         var categoriasFiltradas = todasCategorias.filter(function(categoria) {
             return filtroCategoriasAtual === 'todos' || categoria.tipo === filtroCategoriasAtual;
         });
         
-        // Limpar o container
         container.innerHTML = '';
         
         if (categoriasFiltradas.length > 0) {
             mensagemVazia.style.display = 'none';
             container.style.display = 'grid';
             
-            // Adicionar cada categoria ao container
             categoriasFiltradas.forEach(function(categoria, index) {
                 var card = document.createElement('div');
                 card.className = 'categoria-card';
@@ -350,10 +300,6 @@ function adicionarParametroTipo($base, $tipo) {
         }
     }
     
-    // Função para filtrar categorias
-    // Filtragem agora é feita via navegação (links); função não é necessária
-    
-    // Função para inicializar a página de categorias
     window.inicializarCategorias = function() {
         renderizarCategorias();
     };

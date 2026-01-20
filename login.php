@@ -1,15 +1,12 @@
 <?php
 require_once __DIR__ . '/config/config.php';
-// Incluir funções de usuário e iniciar sessão
 require_once __DIR__ . '/funcoes/usuario.php';
 
-// Se já estiver logado, envia para dashboard
 if (usuarioLogado()) {
     header('Location: index.php');
     exit;
 }
 
-// Processar login localmente
 $erro_login = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'login') {
     $email = $_POST['email'] ?? '';
@@ -29,107 +26,296 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'login')
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistema Financeiro</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .login-container {
             min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr;
+            background: var(--cor-fundo);
+        }
+        .login-hero {
+            display: none;
+        }
+        .login-side {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            background: var(--cor-fundo);
         }
-        
+        body.tema-claro .login-side {
+            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+        }
+        @media (min-width: 899px) {
+            body.tema-claro .login-side {
+                background: linear-gradient(180deg, #f3f4f6 0%, #ffffff 100%);
+            }
+        }
+        body.tema-escuro .login-side {
+            background: linear-gradient(180deg, #0f0f11 0%, #141416 100%);
+        }
+        @media (max-width: 899px) {
+            html, body { height: 100%; }
+            body {
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+            }
+            .login-container { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important; }
+            .login-side {
+                background: transparent;
+            }
+        }
+        @media (min-width: 900px) {
+            .login-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .login-hero {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                position: relative;
+                overflow: hidden;
+            }
+            .login-hero::before {
+                content: "";
+                position: absolute;
+                width: 600px;
+                height: 600px;
+                right: -120px;
+                top: -120px;
+                background: radial-gradient(circle, rgba(255,255,255,0.25), transparent 60%);
+                filter: blur(6px);
+            }
+            .hero-content {
+                position: relative;
+                z-index: 1;
+                max-width: 520px;
+                padding: 40px;
+                color: #111;
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+            }
+            .hero-brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .hero-logo {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: #111;
+                color: #fbbf24;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 12px 28px rgba(17,17,17,0.35);
+            }
+            .hero-title {
+                display: flex;
+                flex-direction: column;
+                line-height: 1.1;
+            }
+            .hero-title .peak {
+                font-weight: 800;
+                font-size: 1.2rem;
+            }
+            .hero-title .sub {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #1F2937;
+            }
+            .hero-desc {
+                font-size: 1.05rem;
+                font-weight: 600;
+                color: #1F2937;
+            }
+        }
         .login-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: rgba(24,24,27,0.65);
+            color: var(--cor-texto);
+            padding: 24px;
+            border-radius: 16px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
         }
-        
+        body.tema-claro .login-card {
+            background: #ffffff;
+            color: var(--cor-texto);
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+        }
         .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 18px;
         }
-        
-        .login-header h1 {
-            color: #333;
-            margin-bottom: 0.5rem;
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(var(--cor-destaque-rgb),0.35), rgba(var(--cor-destaque-rgb),0.15));
+            color: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(var(--cor-destaque-rgb),0.25);
         }
-        
-        .login-header p {
-            color: #666;
-            margin: 0;
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            align-items: flex-start;
         }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
+        .brand-title {
+            font-weight: 700;
+            color: var(--cor-texto);
+            font-size: 1rem;
         }
-        
+        .brand-sub {
+            font-size: 0.85rem;
+            color: var(--cor-destaque);
+            font-weight: 600;
+        }
+        .form-group { margin-bottom: 1rem; }
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
+            margin-bottom: 0.35rem;
+            color: var(--cor-texto);
+            font-weight: 600;
+            font-size: 0.9rem;
         }
-        
+        .input-wrap {
+            position: relative;
+        }
         .form-group input {
             width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--cor-borda);
+            border-radius: 10px;
             font-size: 1rem;
-            transition: border-color 0.3s;
+            background: var(--cor-fundo-secundario);
+            color: var(--cor-texto);
+            transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
         }
-        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--cor-texto-secundario);
+        }
+        .input-wrap input {
+            padding-left: 2.2rem;
+        }
+        .toggle-senha {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid rgba(0,0,0,0.06);
+            color: var(--cor-texto-secundario);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        body.tema-claro .form-group input {
+            background: #fff;
+        }
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: rgba(var(--cor-destaque-rgb),0.65);
+            box-shadow: 0 0 0 3px rgba(var(--cor-destaque-rgb),0.25);
         }
-        
+        .row-opcoes {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        .check {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--cor-texto);
+            font-size: 0.9rem;
+        }
+        .check input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--cor-destaque);
+        }
         .btn-login {
             width: 100%;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
+            padding: 0.8rem;
+            background: linear-gradient(180deg, rgba(var(--cor-destaque-rgb),0.9), rgba(var(--cor-destaque-rgb),0.75));
+            color: #111;
+            border: 1px solid rgba(var(--cor-destaque-rgb),0.35);
+            border-radius: 12px;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            box-shadow: 0 8px 20px rgba(var(--cor-destaque-rgb),0.25);
         }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-        }
-        
+        .btn-login:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(var(--cor-destaque-rgb),0.35); }
+        .btn-login:active { transform: translateY(0); }
         .alert {
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 1rem;
         }
-        
         .alert-error {
-            background-color: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
+            background-color: rgba(244,67,54,0.12);
+            color: #b91c1c;
+            border: 1px solid rgba(244,67,54,0.25);
         }
-        
+        .link-esqueci {
+            display: inline-block;
+            margin-top: 0.5rem;
+            color: var(--cor-destaque);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
         .demo-info {
-            background-color: #e8f4fd;
-            color: #0066cc;
-            border: 1px solid #b3d9ff;
+            background-color: rgba(255,255,255,0.08);
+            color: var(--cor-texto);
+            border: 1px solid rgba(255,255,255,0.18);
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-top: 1rem;
             font-size: 0.9rem;
         }
-        
-        .demo-info strong {
-            display: block;
-            margin-bottom: 0.5rem;
+        body.tema-claro .demo-info {
+            background-color: #fff;
+            border: 1px solid rgba(0,0,0,0.08);
+            color: var(--cor-texto);
         }
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000; }
+        .modal.ativo { display:flex; }
+        .modal-conteudo { background: var(--cor-fundo-secundario, #fff); color: var(--cor-texto, #111); border-radius: 12px; width: 95%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-cabecalho { display:flex; align-items:center; justify-content:space-between; padding: 16px 20px; border-bottom: 1px solid var(--cor-borda, #eee); }
+        .modal-body { padding: 16px 20px; }
+        .modal-actions { display:flex; gap:10px; padding: 0 20px 16px; }
+        .btn { padding: 10px 12px; border-radius: 8px; border:none; cursor:pointer; }
+        .btn-primario { background: var(--cor-destaque, #667eea); color:#111; font-weight:700; border:1px solid rgba(var(--cor-destaque-rgb),0.35); }
+        .btn-secundario { background: var(--cor-borda, #eee); color: var(--cor-texto, #111); }
     </style>
 </head>
 <body>
@@ -148,11 +334,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'login')
     })();
     </script>
     <div class="login-container">
+        <div class="login-hero">
+            <div class="hero-content">
+                <div class="hero-brand">
+                    <div class="hero-logo"><i class="fas fa-tree"></i></div>
+                    <div class="hero-title">
+                        <span class="peak">PEAK</span>
+                        <span class="sub">Gestão Financeira</span>
+                    </div>
+                </div>
+                <div class="hero-desc">Controle suas finanças com clareza e precisão.</div>
+            </div>
+        </div>
+        <div class="login-side">
         <div class="login-card">
             <div class="login-header">
-                <h1>💰 Sistema Financeiro</h1>
-                <p>Faça login para acessar sua conta</p>
+                <div class="brand-logo"><i class="fas fa-tree"></i></div>
+                <div class="brand-text">
+                    <span class="brand-title">PEAK</span>
+                    <span class="brand-sub">Gestão Financeira</span>
+                </div>
             </div>
+            <p style="text-align:center; color: var(--cor-texto-secundario); margin:0 0 12px 0;">Faça login para acessar sua conta</p>
             
             <?php if ($erro_login || isset($_GET['erro'])): ?>
                 <div class="alert alert-error">
@@ -177,24 +380,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'login')
                 
                 <div class="form-group">
                     <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" required 
-                           value="<?php echo htmlspecialchars($_POST['email'] ?? 'usuario@email.com'); ?>">
+                    <div class="input-wrap">
+                        <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                        <input type="email" id="email" name="email" required 
+                               value="<?php echo htmlspecialchars($_POST['email'] ?? 'usuario@email.com'); ?>">
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="senha">Senha:</label>
-                    <input type="password" id="senha" name="senha" required>
-                    <span class="link-esqueci" onclick="abrirEsqueciSenha()">Esqueci minha senha</span>
+                    <div class="input-wrap">
+                        <span class="input-icon"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="senha" name="senha" required>
+                        <button type="button" class="toggle-senha" id="btn-toggle-senha"><i class="fas fa-eye-slash"></i></button>
+                    </div>
+                    <div class="row-opcoes">
+                        <label class="check"><input type="checkbox" id="lembrar"> Lembrar-me</label>
+                        <span class="link-esqueci" onclick="abrirEsqueciSenha()">Esqueci minha senha</span>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn-login">Entrar</button>
             </form>
-            
-            <div class="demo-info">
-                <strong>Dados para teste:</strong>
-                Email: usuario@email.com<br>
-                Senha: 123456
-            </div>
+        </div>
         </div>
     </div>
 
@@ -264,22 +472,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'login')
         .then(r=>r.json()).then(j=>{ if (j.sucesso) { alert('Senha atualizada'); fecharEsqueciSenha(); } else { alert('Erro: ' + (j.erro || 'Falha')); } })
         .catch(()=>{ alert('Erro ao salvar'); });
     }
+    (function(){
+        var btn = document.getElementById('btn-toggle-senha');
+        var inp = document.getElementById('senha');
+        if (btn && inp) {
+            btn.addEventListener('click', function(){
+                var visivel = inp.getAttribute('type') === 'text';
+                inp.setAttribute('type', visivel ? 'password' : 'text');
+                var ic = btn.querySelector('i');
+                if (ic) ic.className = visivel ? 'fas fa-eye-slash' : 'fas fa-eye';
+            });
+        }
+        try {
+            var lembrar = document.getElementById('lembrar');
+            var email = document.getElementById('email');
+            var senha = document.getElementById('senha');
+            var pref = localStorage.getItem('loginPref');
+            if (pref) {
+                var j = JSON.parse(pref);
+                if (j.email) email.value = j.email;
+                if (j.lembrar) lembrar.checked = true;
+            }
+            document.querySelector('form').addEventListener('submit', function(){
+                if (lembrar && lembrar.checked) {
+                    localStorage.setItem('loginPref', JSON.stringify({ email: email.value, lembrar: true }));
+                } else {
+                    localStorage.removeItem('loginPref');
+                }
+            });
+        } catch(e) {}
+    })();
     </script>
 </body>
 </html>
-        .link-esqueci {
-            display: inline-block;
-            margin-top: 0.5rem;
-            color: #667eea;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000; }
-        .modal.ativo { display:flex; }
-        .modal-conteudo { background: var(--cor-fundo-secundario, #fff); color: var(--cor-texto, #111); border-radius: 12px; width: 95%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .modal-cabecalho { display:flex; align-items:center; justify-content:space-between; padding: 16px 20px; border-bottom: 1px solid var(--cor-borda, #eee); }
-        .modal-body { padding: 16px 20px; }
-        .modal-actions { display:flex; gap:10px; padding: 0 20px 16px; }
-        .btn { padding: 10px 12px; border-radius: 8px; border:none; cursor:pointer; }
-        .btn-primario { background: var(--cor-destaque, #667eea); color:#fff; }
-        .btn-secundario { background: var(--cor-borda, #eee); color: var(--cor-texto, #111); }

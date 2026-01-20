@@ -66,13 +66,30 @@ class FinancasApp {
                     this.posicionarPainel(painelSeletor, botaoSeletor);
                     this.atualizarMesNav(mesNavTexto);
                     this.renderizarCalendario(diasContainer);
+                    let overlay = document.getElementById('overlay-seletor-periodo');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay-seletor-periodo';
+                        overlay.className = 'overlay-seletor';
+                        document.body.appendChild(overlay);
+                    }
+                    overlay.style.display = 'block';
+                } else {
+                    const o = document.getElementById('overlay-seletor-periodo');
+                    if (o) o.remove();
                 }
             });
             document.addEventListener('click', (e) => {
                 const container = document.getElementById('seletor-bonito-periodo');
-                if (container && !container.contains(e.target)) {
+                const clicandoNoPainel = painelSeletor && painelSeletor.style.display !== 'none' && painelSeletor.contains(e.target);
+                const clicandoNoBotao = botaoSeletor && botaoSeletor.contains(e.target);
+                const clicandoNoContainer = container && container.contains(e.target);
+                if (painelSeletor && painelSeletor.style.display !== 'none') {
+                    if (clicandoNoPainel || clicandoNoBotao || clicandoNoContainer) return;
                     painelSeletor.style.display = 'none';
                     if (painelPersonalizado) painelPersonalizado.style.display = 'none';
+                    const o = document.getElementById('overlay-seletor-periodo');
+                    if (o) o.remove();
                 }
             });
             window.addEventListener('resize', () => {
@@ -84,8 +101,6 @@ class FinancasApp {
                 btnPrev.addEventListener('click', () => {
                     this.mesNav = new Date(this.mesNav.getFullYear(), this.mesNav.getMonth() - 1, 1);
                     this.atualizarMesNav(mesNavTexto);
-                    this.definirMesSelecionado(this.mesNav.getFullYear(), this.mesNav.getMonth());
-                    if (textoSeletor) textoSeletor.textContent = this.obterTextoPeriodo('mes_selecionado');
                     this.renderizarCalendario(diasContainer);
                 });
             }
@@ -93,8 +108,6 @@ class FinancasApp {
                 btnNext.addEventListener('click', () => {
                     this.mesNav = new Date(this.mesNav.getFullYear(), this.mesNav.getMonth() + 1, 1);
                     this.atualizarMesNav(mesNavTexto);
-                    this.definirMesSelecionado(this.mesNav.getFullYear(), this.mesNav.getMonth());
-                    if (textoSeletor) textoSeletor.textContent = this.obterTextoPeriodo('mes_selecionado');
                     this.renderizarCalendario(diasContainer);
                 });
             }
@@ -110,19 +123,28 @@ class FinancasApp {
                 aplicarCalendario.addEventListener('click', () => {
                     const i = this.selecaoCalendario.inicio;
                     const f = this.selecaoCalendario.fim || this.selecaoCalendario.inicio;
-                    if (!i) return;
-                    const fi = `${i.getFullYear()}-${String(i.getMonth()+1).padStart(2,'0')}-${String(i.getDate()).padStart(2,'0')}`;
-                    const ff = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`;
-                    this.definirPeriodoPersonalizado(fi, ff);
-                    const mesmoMes = i.getFullYear() === f.getFullYear() && i.getMonth() === f.getMonth();
-                    if (mesmoMes) {
-                        this.mesNav = new Date(i.getFullYear(), i.getMonth(), 1);
+                    if (!i) {
+                        // Sem seleção de dias: aplica o mês exibido
+                        this.definirMesSelecionado(this.mesNav.getFullYear(), this.mesNav.getMonth());
                         if (textoSeletor) textoSeletor.textContent = this.obterTextoPeriodo('mes_selecionado');
                     } else {
-                        if (textoSeletor) textoSeletor.textContent = 'Personalizado';
+                        // Com seleção: aplica intervalo personalizado
+                        const fi = `${i.getFullYear()}-${String(i.getMonth()+1).padStart(2,'0')}-${String(i.getDate()).padStart(2,'0')}`;
+                        const ffDate = f || i;
+                        const ff = `${ffDate.getFullYear()}-${String(ffDate.getMonth()+1).padStart(2,'0')}-${String(ffDate.getDate()).padStart(2,'0')}`;
+                        this.definirPeriodoPersonalizado(fi, ff);
+                        const mesmoMes = i.getFullYear() === ffDate.getFullYear() && i.getMonth() === ffDate.getMonth();
+                        if (mesmoMes) {
+                            this.mesNav = new Date(i.getFullYear(), i.getMonth(), 1);
+                            if (textoSeletor) textoSeletor.textContent = this.obterTextoPeriodo('mes_selecionado');
+                        } else {
+                            if (textoSeletor) textoSeletor.textContent = 'Personalizado';
+                        }
                     }
                     painelSeletor.style.display = 'none';
                     // manter selecaoCalendario para reabrir com destaque
+                    const o = document.getElementById('overlay-seletor-periodo');
+                    if (o) o.remove();
                 });
             }
             if (cancelarCalendario) {
@@ -130,6 +152,8 @@ class FinancasApp {
                     this.selecaoCalendario = { inicio: null, fim: null };
                     this.renderizarCalendario(diasContainer);
                     painelSeletor.style.display = 'none';
+                    const o = document.getElementById('overlay-seletor-periodo');
+                    if (o) o.remove();
                 });
             }
         }
@@ -157,11 +181,17 @@ class FinancasApp {
         const panelWidth = 320;
         if (vw <= 600) {
             painel.style.position = 'fixed';
-            painel.style.top = `${containerRect.bottom + 8}px`;
             painel.style.left = '50%';
             painel.style.right = 'auto';
             painel.style.transform = 'translateX(-50%)';
             painel.style.width = `min(360px, calc(100vw - 20px))`;
+            const ph = painel.offsetHeight || 0;
+            const margin = 8;
+            const safeBottom = 160;
+            const targetTop = containerRect.bottom + margin;
+            const maxTop = Math.max(12, (window.innerHeight - ph - safeBottom));
+            const top = Math.min(targetTop, maxTop);
+            painel.style.top = `${Math.max(12, top)}px`;
             return;
         }
         painel.style.position = 'absolute';
@@ -1038,6 +1068,8 @@ class FinancasApp {
         await this.atualizarValoresDashboard(dados);
         await this.criarGraficoLinhas(dados);
         await this.criarGraficoPizza(dados);
+        await this.criarDonutReceitas(dados);
+        await this.criarDonutDespesas(dados);
         await this.atualizarListaCategorias(dados);
     }
 }
