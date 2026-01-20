@@ -2,15 +2,15 @@
 require_once __DIR__ . '/config.php';
 
 class Database {
-    private $host = 'localhost';
-    private $db_name = 'u214219698_financias';
-    private $username = 'u214219698_financias';
-    private $password = 'ffeede!A12';
-    
     // private $host = 'localhost';
-    // private $db_name = 'gestao_financeira';
-    // private $username = 'root';
-    // private $password = '';
+    // private $db_name = 'u214219698_financias';
+    // private $username = 'u214219698_financias';
+    // private $password = 'ffeede!A12';
+    
+    private $host = 'localhost';
+    private $db_name = 'gestao_financeira';
+    private $username = 'root';
+    private $password = '';
 
       
     // private $host = 'localhost';

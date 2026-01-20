@@ -3031,7 +3031,7 @@ body.tema-claro .modal input[type="file"]::file-selector-button {
     margin-bottom: 12px;
 }
 .barra-selecao-acoes { display:flex; gap:8px; }
-.transacoes-content.modo-selecao .transacao-acoes { display: none; }
+.transacoes-content.modo-selecao .transacao-acoes { display: flex; }
 .transacoes-content.modo-selecao .transacao-card { position: relative; cursor: pointer; }
 .transacoes-content.modo-selecao .transacao-card.selecionado {
     border: 1px solid var(--cor-destaque);
@@ -3066,14 +3066,29 @@ body.tema-claro .modal input[type="file"]::file-selector-button {
     color: #fff;
     display: flex;
 }
-/* Mobile: marcador no canto direito */
+/* Mobile: marcador substitui o ícone, igual ao PC */
 @media (max-width: 767px) {
-    .transacoes-content.modo-selecao .transacao-card .selecao-marcador { right: auto; }
+    .transacoes-content.modo-selecao .transacao-card .selecao-marcador {
+        position: absolute;
+        top: calc(50% - 1rem);
+        left: 0.75rem;
+        transform: none;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.75rem;
+        z-index: 2;
+    }
+    .transacoes-content.modo-selecao .transacao-card.selecionado .transacao-icon {
+        visibility: hidden;
+    }
 }
 /* Desktop: marcador próximo ao ícone à esquerda, longe do valor */
 @media (min-width: 992px) {
     .transacoes-content.modo-selecao .transacao-card .selecao-marcador {
         position: absolute;
+        top: calc(50% - 1.25rem);
+        left: 1rem;
+        transform: none;
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 0.75rem;
@@ -3086,9 +3101,7 @@ body.tema-claro .modal input[type="file"]::file-selector-button {
         font-weight: 800;
         font-size: 1rem;
         box-shadow: var(--sombra-padrao);
-        align-self: auto;
-        margin-left: 0;
-        margin-right: 0;
+        z-index: 2;
     }
     .transacoes-content.modo-selecao .transacao-card.selecionado .selecao-marcador {
         display: flex;
@@ -3097,7 +3110,7 @@ body.tema-claro .modal input[type="file"]::file-selector-button {
         color: #fff;
     }
     .transacoes-content.modo-selecao .transacao-card.selecionado .transacao-icon {
-        display: none;
+        visibility: hidden;
     }
 }
 

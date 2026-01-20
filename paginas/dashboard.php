@@ -1,11 +1,10 @@
-<!-- Dashboard - Página principal -->
 <?php
-// Incluir funções necessárias
+// --- LÓGICA FUNCIONAL PHP ---
 require_once __DIR__ . '/../funcoes/transacoes.php';
 require_once __DIR__ . '/../funcoes/categorias.php';
 require_once __DIR__ . '/../funcoes/configuracoes.php';
+require_once __DIR__ . '/../funcoes/usuario.php';
 
-// Obter dados dinâmicos já alinhados ao mês atual
 $usuario_id = usuarioLogado() ? obterUsuarioId() : 0;
 $mes_atual = date('Y-m');
 $totais_mes = calcularTotaisMes($usuario_id, $mes_atual);
@@ -16,141 +15,201 @@ $resumo = [
 ];
 $configuracoes = lerConfiguracoes();
 $simbolo_moeda = $configuracoes['preferencias']['simbolo_moeda'];
-
-
+$dados_usuario = obterDadosUsuario();
+$nome_usuario = $dados_usuario['nome'] ?? ($_SESSION['usuario_nome'] ?? 'Usuário');
+$foto_usuario = $dados_usuario['foto_perfil'] ?? '';
+$url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=' . urlencode($nome_usuario) . '&background=fbbf24&color=000';
 ?>
-<div class="pagina-dashboard">
-    <!-- Header da Página -->
-    <div class="dashboard-header">
-        <div class="dashboard-background"></div>
-        <div class="header-content">
-            <div class="header-info">
-                <h1>
-                    <i class="fas fa-chart-line"></i>
-                    Dashboard
-                </h1>
-                <p id="descricao-periodo">Visão geral das suas finanças</p>
+
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth OS - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-menu {
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-gradient-bg {
+            background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-950 text-zinc-400 antialiased min-h-screen relative overflow-x-hidden">
+
+    <div class="fixed top-0 left-0 w-full h-96 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none z-0"></div>
+
+    <main class="min-h-screen w-full z-10 pb-32 relative">
+
+        <div id="view-dashboard" class="px-6 py-8 md:py-12 max-w-5xl mx-auto space-y-8 block animate-fade-in">
+
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl gold-gradient-bg flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20">
+                        <iconify-icon icon="mynaui:tree" width="24"></iconify-icon>
+                    </div>
+                    <div>
+                        <span class="block text-sm font-semibold tracking-tight text-white leading-none">PEAK</span>
+                        <span class="text-xs text-amber-500 tracking-wide font-medium">Gestão Financeira</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                        onclick="app.toggleOcultarValores()">
+                        <i class="fas" id="icone-ocultar"></i>
+                    </button>
+                    <img src="<?php echo htmlspecialchars($url_avatar); ?>" class="w-10 h-10 rounded-full border border-white/10 shadow-xl">
+                </div>
             </div>
-            <div class="header-actions">
-                <div class="controle-periodo">
-                    <div class="seletor-bonito" id="seletor-bonito-periodo">
-                        <button class="seletor-botao" id="btn-seletor-periodo">
-                            <span id="texto-seletor-periodo">Mês atual</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="seletor-painel" id="painel-seletor-periodo" style="display: none;">
-                            <div class="painel-topo">
-                                <button class="painel-nav" id="painel-prev"><i class="fas fa-chevron-left"></i></button>
-                                <button class="mes-nav-botao" id="mes-nav-botao">
-                                    <span id="mes-nav-texto"></span>
-                                </button>
-                                <button class="painel-nav" id="painel-next"><i class="fas fa-chevron-right"></i></button>
+
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight text-white">Dashboard</h1>
+                    <p class="text-sm text-zinc-500 mt-1" id="descricao-periodo">Visão geral das suas finanças</p>
+                </div>
+
+                <div class="relative">
+                    <button id="btn-seletor-periodo"
+                        class="px-4 py-2 text-xs font-medium text-zinc-300 bg-zinc-900 border border-white/10 rounded-full flex items-center gap-2 hover:border-amber-500/50 transition-colors">
+                        <span id="texto-seletor-periodo">Mês Atual</span>
+                        <iconify-icon icon="solar:alt-arrow-down-linear"></iconify-icon>
+                    </button>
+                    <div class="seletor-painel" id="painel-seletor-periodo" style="display: none;">
+                        <div class="painel-topo">
+                            <button class="painel-nav" id="painel-prev"><i class="fas fa-chevron-left"></i></button>
+                            <button class="mes-nav-botao" id="mes-nav-botao">
+                                <span id="mes-nav-texto"></span>
+                            </button>
+                            <button class="painel-nav" id="painel-next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="painel-calendario" id="painel-calendario">
+                            <div class="calendario-cabecalho">
+                                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
                             </div>
-                            <div class="painel-calendario" id="painel-calendario">
-                                <div class="calendario-cabecalho">
-                                    <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-                                </div>
-                                <div class="calendario-dias" id="calendario-dias"></div>
-                                <div class="painel-acoes">
-                                    <button class="acao-cancelar" id="acao-cancelar-calendario">Cancelar</button>
-                                    <button class="acao-padrao" id="acao-aplicar-calendario">Aplicar</button>
-                                </div>
+                            <div class="calendario-dias" id="calendario-dias"></div>
+                            <div class="painel-acoes">
+                                <button class="acao-cancelar" id="acao-cancelar-calendario">Cancelar</button>
+                                <button class="acao-padrao" id="acao-aplicar-calendario">Aplicar</button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button class="botao-ocultar" onclick="app.toggleOcultarValores()">
-                    <i class="fas" id="icone-ocultar"></i>
-                    <span>Ocultar</span>
-                </button>
             </div>
-        </div>
-    </div>
 
-    <!-- Card de resumo financeiro completo -->
-    <div class="card card-resumo-completo">
-        <!-- Saldo principal -->
-        <div class="saldo-principal">
-            <div class="titulo-saldo">Saldo em contas</div>
-            <div class="valor-saldo-principal" id="valor-saldo"><?php echo $simbolo_moeda . ' ' . number_format($resumo['saldo_atual'], 2, ',', '.'); ?></div>
-            <div class="valor-saldo-principal" id="valor-oculto" style="display: none;">••••••</div>
-        </div>
-        
-        <!-- Receitas e Despesas -->
-        <div class="entradas-saidas">
-            <div class="entrada-item">
-                <div class="entrada-icone">
-                    <i class="fas fa-arrow-up"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1">Saldo Total</p>
+                        <h2 class="text-3xl font-medium tracking-tight gold-gradient-text" id="valor-saldo">
+                            <?php echo $simbolo_moeda . ' ' . number_format($resumo['saldo_atual'], 2, ',', '.'); ?>
+                        </h2>
+                        <h2 class="text-3xl font-medium tracking-tight text-white" id="valor-oculto"
+                            style="display: none;">••••••</h2>
+                    </div>
                 </div>
-                <div class="entrada-info">
-                    <div class="entrada-titulo">Receitas</div>
-                    <div class="entrada-valor valor-receita" id="valor-receitas"><?php echo $simbolo_moeda . ' ' . number_format($resumo['total_receitas'], 2, ',', '.'); ?></div>
-                    <div class="entrada-valor" id="receitas-oculto" style="display: none;">••••••</div>
+
+                <div class="glass-panel p-6 rounded-2xl border-l-2 border-l-emerald-500/50">
+                    <p class="text-xs text-zinc-500 mb-1">Receitas</p>
+                    <p class="text-xl font-medium text-white tracking-tight" id="valor-receitas">
+                        <?php echo $simbolo_moeda . ' ' . number_format($resumo['total_receitas'], 2, ',', '.'); ?>
+                    </p>
+                    <p class="text-xl font-medium text-white tracking-tight" id="receitas-oculto"
+                        style="display: none;">••••••</p>
                 </div>
-            </div>
-            
-            <div class="saida-item">
-                <div class="saida-icone">
-                    <i class="fas fa-arrow-down"></i>
-                </div>
-                <div class="saida-info">
-                    <div class="saida-titulo">Despesas</div>
-                    <div class="saida-valor valor-despesa" id="valor-despesas"><?php echo $simbolo_moeda . ' ' . number_format($resumo['total_despesas'], 2, ',', '.'); ?></div>
-                    <div class="saida-valor" id="despesas-oculto" style="display: none;">••••••</div>
+
+                <div class="glass-panel p-6 rounded-2xl border-l-2 border-l-red-500/50">
+                    <p class="text-xs text-zinc-500 mb-1">Despesas</p>
+                    <p class="text-xl font-medium text-white tracking-tight" id="valor-despesas">
+                        <?php echo $simbolo_moeda . ' ' . number_format($resumo['total_despesas'], 2, ',', '.'); ?>
+                    </p>
+                    <p class="text-xl font-medium text-white tracking-tight" id="despesas-oculto"
+                        style="display: none;">••••••</p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Gráfico de linhas (entradas e saídas ao longo do tempo) -->
-    <div class="card">
-        <div class="titulo-secao">
-            <i class="fas fa-chart-line"></i>
-            Entradas e Saídas
-        </div>
-        <div class="container-grafico">
-            <canvas id="grafico-linhas"></canvas>
-        </div>
-    </div>
-
-    <!-- Gráfico de barras mensal (Entradas x Saídas) -->
-    <div class="card">
-        <div class="titulo-secao">
-            <i class="fas fa-chart-bar"></i>
-            Entradas x Saídas (Mensal)
-        </div>
-        <div class="container-grafico">
-            <canvas id="grafico-mensal"></canvas>
-        </div>
-    </div>
-
-    <div class="cards-row">
-        <div class="card">
-            <div class="titulo-secao">
-                <i class="fas fa-chart-pie"></i>
-                Categorias de Receitas
-            </div>
-            <div class="container-grafico">
-                <canvas id="grafico-donut-receitas"></canvas>
-            </div>
-            <div class="listagem-categorias">
-                <div id="lista-categorias-receitas"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-sm font-medium text-white mb-6">Entradas e Saídas</h3>
+                    <div class="h-64"><canvas id="grafico-linhas"></canvas></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-sm font-medium text-white mb-6 flex items-center gap-2">
+                        <iconify-icon icon="solar:pie-chart-2-linear" class="text-emerald-500"></iconify-icon>
+                        Categorias de Receitas
+                    </h3>
+                    <div class="h-64 relative w-full flex justify-center items-center">
+                        <canvas id="grafico-donut-receitas"></canvas>
+                    </div>
+                    <div id="lista-categorias-receitas" class="mt-4 space-y-1"></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-sm font-medium text-white mb-6 flex items-center gap-2">
+                        <iconify-icon icon="solar:pie-chart-2-linear" class="text-amber-500"></iconify-icon>
+                        Categorias de Despesas
+                    </h3>
+                    <div class="h-64 relative w-full flex justify-center items-center">
+                        <canvas id="grafico-donut-despesas"></canvas>
+                    </div>
+                    <div id="lista-categorias-despesas" class="mt-4 space-y-1"></div>
+                </div>
             </div>
         </div>
+    </main>
 
-        <div class="card">
-            <div class="titulo-secao">
-                <i class="fas fa-chart-pie"></i>
-                Categorias de Despesas
-            </div>
-            <div class="container-grafico">
-                <canvas id="grafico-donut-despesas"></canvas>
-            </div>
-            <div class="listagem-categorias">
-                <div id="lista-categorias-despesas"></div>
-            </div>
-        </div>
-    </div>
+</body>
 
-
-</div>
+</html>
