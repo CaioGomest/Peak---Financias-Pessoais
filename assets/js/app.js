@@ -16,10 +16,10 @@ class FinancasApp {
         // Aguardar o DOM carregar
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-            this.inicializarGraficos();
-            this.configurarEventos();
-            this.atualizarDescricaoPeriodo();
-        });
+                this.inicializarGraficos();
+                this.configurarEventos();
+                this.atualizarDescricaoPeriodo();
+            });
         } else {
             this.inicializarGraficos();
             this.configurarEventos();
@@ -55,7 +55,7 @@ class FinancasApp {
             botaoSeletor.addEventListener('click', () => {
                 const abrir = painelSeletor.style.display === 'none';
                 painelSeletor.style.display = abrir ? 'block' : 'none';
-                if ( abrir ) {
+                if (abrir) {
                     if (this.periodo.inicio) {
                         this.mesNav = new Date(this.periodo.inicio.getFullYear(), this.periodo.inicio.getMonth(), 1);
                         this.selecaoCalendario = {
@@ -129,9 +129,9 @@ class FinancasApp {
                         if (textoSeletor) textoSeletor.textContent = this.obterTextoPeriodo('mes_selecionado');
                     } else {
                         // Com seleção: aplica intervalo personalizado
-                        const fi = `${i.getFullYear()}-${String(i.getMonth()+1).padStart(2,'0')}-${String(i.getDate()).padStart(2,'0')}`;
+                        const fi = `${i.getFullYear()}-${String(i.getMonth() + 1).padStart(2, '0')}-${String(i.getDate()).padStart(2, '0')}`;
                         const ffDate = f || i;
-                        const ff = `${ffDate.getFullYear()}-${String(ffDate.getMonth()+1).padStart(2,'0')}-${String(ffDate.getDate()).padStart(2,'0')}`;
+                        const ff = `${ffDate.getFullYear()}-${String(ffDate.getMonth() + 1).padStart(2, '0')}-${String(ffDate.getDate()).padStart(2, '0')}`;
                         this.definirPeriodoPersonalizado(fi, ff);
                         const mesmoMes = i.getFullYear() === ffDate.getFullYear() && i.getMonth() === ffDate.getMonth();
                         if (mesmoMes) {
@@ -263,7 +263,7 @@ class FinancasApp {
     atualizarRealceSelecao(container) {
         if (!container) return;
         const itens = container.querySelectorAll('.calendario-dia');
-        itens.forEach(el => el.classList.remove('selecionado-inicio','selecionado-fim','intervalo'));
+        itens.forEach(el => el.classList.remove('selecionado-inicio', 'selecionado-fim', 'intervalo'));
         const ano = this.mesNav.getFullYear();
         const mes = this.mesNav.getMonth();
         const inicio = this.selecaoCalendario.inicio;
@@ -273,7 +273,7 @@ class FinancasApp {
             if (el.classList.contains('vazio')) return;
             const dia = parseInt(el.textContent, 10);
             const data = new Date(ano, mes, dia);
-            const mesmoDia = (a,b) => a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+            const mesmoDia = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
             if (mesmoDia(data, inicio)) el.classList.add('selecionado-inicio');
             if (mesmoDia(data, fim)) el.classList.add('selecionado-fim');
             if (fim && data > inicio && data < fim) el.classList.add('intervalo');
@@ -294,7 +294,7 @@ class FinancasApp {
     // Função para alternar visibilidade dos valores
     toggleOcultarValores() {
         this.valoresOcultos = !this.valoresOcultos;
-        
+
         const elementosValor = document.querySelectorAll('[id*="valor-"]');
         const elementosOculto = document.querySelectorAll('[id*="-oculto"]');
         const iconeOcultar = document.getElementById('icone-ocultar');
@@ -304,13 +304,13 @@ class FinancasApp {
             // Ocultar valores
             elementosValor.forEach(el => el.style.display = 'none');
             elementosOculto.forEach(el => el.style.display = 'block');
-            iconeOcultar.className = 'fas fa-eye';
+            iconeOcultar.className = 'fas fa-eye-slash';
             if (textoOcultar) textoOcultar.textContent = 'Mostrar';
         } else {
             // Mostrar valores
             elementosValor.forEach(el => el.style.display = 'block');
             elementosOculto.forEach(el => el.style.display = 'none');
-            iconeOcultar.className = 'fas fa-eye-slash';
+            iconeOcultar.className = 'fas fa-eye';
             if (textoOcultar) textoOcultar.textContent = 'Ocultar';
         }
     }
@@ -319,19 +319,19 @@ class FinancasApp {
     async obterDadosFinanceiros() {
         try {
             console.log('Iniciando obtenção de dados financeiros...');
-            
+
             // Buscar transações
             console.log('Buscando transações...');
             const responseTransacoes = await fetch('funcoes/transacoes.php?api=transacoes&acao=listar');
             console.log('Response transações:', responseTransacoes.status, responseTransacoes.statusText);
-            
+
             if (!responseTransacoes.ok) {
                 throw new Error(`Erro ao buscar transações: ${responseTransacoes.status}`);
             }
-            
+
             const textTransacoes = await responseTransacoes.text();
             console.log('Texto da resposta transações:', textTransacoes.substring(0, 200));
-            
+
             let transacoes;
             try {
                 transacoes = JSON.parse(textTransacoes);
@@ -340,19 +340,19 @@ class FinancasApp {
                 console.error('Texto recebido:', textTransacoes);
                 throw new Error('Resposta de transações não é um JSON válido');
             }
-            
+
             // Buscar categorias
             console.log('Buscando categorias...');
             const responseCategorias = await fetch('funcoes/transacoes.php?api=categorias&acao=listar');
             console.log('Response categorias:', responseCategorias.status, responseCategorias.statusText);
-            
+
             if (!responseCategorias.ok) {
                 throw new Error(`Erro ao buscar categorias: ${responseCategorias.status}`);
             }
-            
+
             const textCategorias = await responseCategorias.text();
             console.log('Texto da resposta categorias:', textCategorias.substring(0, 200));
-            
+
             let categorias;
             try {
                 categorias = JSON.parse(textCategorias);
@@ -361,10 +361,10 @@ class FinancasApp {
                 console.error('Texto recebido:', textCategorias);
                 throw new Error('Resposta de categorias não é um JSON válido');
             }
-            
+
             console.log('Transações obtidas:', transacoes.length);
             console.log('Categorias obtidas:', categorias.length);
-            
+
             const intervalo = this.obterIntervaloSelecionado();
             const transacoesFiltradas = Array.isArray(transacoes) ? transacoes.filter(t => {
                 const dtRaw = t.data_transacao || t.data;
@@ -379,7 +379,7 @@ class FinancasApp {
             const categoriasDespesasTotais = {};
 
             // Últimos 12 meses
-            const nomesMeses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             const agora = new Date();
             const mapaMesIdx = {};
             const labelsMensal = [];
@@ -392,7 +392,7 @@ class FinancasApp {
                 mapaMesIdx[chave] = idx;
                 labelsMensal.push(`${nomesMeses[d.getMonth()]}/${String(d.getFullYear()).slice(-2)}`);
             }
-            
+
             transacoesFiltradas.forEach(transacao => {
                 const ehTransferencia = (transacao.eh_transferencia === 1) || (typeof transacao.observacoes === 'string' && transacao.observacoes.indexOf('TRANSFERENCIA:') === 0);
                 const valor = parseFloat(transacao.valor);
@@ -403,7 +403,7 @@ class FinancasApp {
                         despesas += valor;
                     }
                 }
-                
+
                 // Agrupar por categoria separando receitas e despesas
                 const categoriaNome = transacao.categoria_nome || 'Sem categoria';
                 const categoriaCor = transacao.categoria_cor || '#999999';
@@ -431,11 +431,11 @@ class FinancasApp {
                     }
                 }
             });
-            
+
             // Converter categorias para arrays
-            const categoriasReceitasArray = Object.values(categoriasReceitasTotais).filter(cat => cat.valor > 0).sort((a,b)=>b.valor-a.valor);
-            const categoriasDespesasArray = Object.values(categoriasDespesasTotais).filter(cat => cat.valor > 0).sort((a,b)=>b.valor-a.valor);
-            
+            const categoriasReceitasArray = Object.values(categoriasReceitasTotais).filter(cat => cat.valor > 0).sort((a, b) => b.valor - a.valor);
+            const categoriasDespesasArray = Object.values(categoriasDespesasTotais).filter(cat => cat.valor > 0).sort((a, b) => b.valor - a.valor);
+
             const resultado = {
                 receitas: receitas,
                 despesas: despesas,
@@ -445,10 +445,10 @@ class FinancasApp {
                 mensal: { labels: labelsMensal, receitas: receitasMensal, despesas: despesasMensal },
                 transacoes: transacoesFiltradas
             };
-            
+
             console.log('Dados financeiros processados:', resultado);
             return resultado;
-            
+
         } catch (error) {
             console.error('Erro ao obter dados financeiros:', error);
             // Retornar dados vazios em caso de erro
@@ -466,17 +466,17 @@ class FinancasApp {
         setTimeout(async () => {
             const dados = await this.obterDadosFinanceiros();
             await this.atualizarValoresDashboard(dados);
-            
+
             const canvasLinhas = document.getElementById('grafico-linhas');
             const canvasPizza = document.getElementById('grafico-pizza');
             const canvasMensal = document.getElementById('grafico-mensal');
             const canvasDonutRec = document.getElementById('grafico-donut-receitas');
             const canvasDonutDes = document.getElementById('grafico-donut-despesas');
-            
+
             if (canvasLinhas) {
                 await this.criarGraficoLinhas(dados);
             }
-            
+
             if (canvasPizza) {
                 await this.criarGraficoPizza(dados);
             }
@@ -502,7 +502,7 @@ class FinancasApp {
             if (!dados) {
                 dados = await this.obterDadosFinanceiros();
             }
-            
+
             // Atualizar saldo (receitas - despesas)
             const saldo = dados.receitas - dados.despesas;
             const elementoSaldo = document.getElementById('valor-saldo');
@@ -666,7 +666,7 @@ class FinancasApp {
                         borderColor: '#6C63FF',
                         borderWidth: 1,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const valor = context.parsed;
                                 const total = dados.receitas + dados.despesas;
                                 const percentual = ((valor / total) * 100).toFixed(1);
@@ -692,7 +692,7 @@ class FinancasApp {
         }
 
         const ctx = canvas.getContext('2d');
-        
+
         // Se os dados não foram fornecidos, buscar da API
         if (!dados) {
             dados = await this.obterDadosFinanceiros();
@@ -739,6 +739,14 @@ class FinancasApp {
             });
         }
 
+        const gradientReceitas = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientReceitas.addColorStop(0, 'rgba(76, 175, 80, 0.35)');
+        gradientReceitas.addColorStop(1, 'rgba(76, 175, 80, 0)');
+
+        const gradientDespesas = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientDespesas.addColorStop(0, 'rgba(244, 67, 54, 0.35)');
+        gradientDespesas.addColorStop(1, 'rgba(244, 67, 54, 0)');
+
         this.graficoLinhas = new Chart(ctx, {
             type: 'line',
             data: {
@@ -748,29 +756,25 @@ class FinancasApp {
                         label: 'Receitas',
                         data: receitasData,
                         borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                        borderWidth: 3,
+                        backgroundColor: gradientReceitas,
+                        borderWidth: 2,
                         fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#4CAF50',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
+                        tension: 0.45,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#4CAF50'
                     },
                     {
                         label: 'Despesas',
                         data: despesasData,
                         borderColor: '#F44336',
-                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                        borderWidth: 3,
+                        backgroundColor: gradientDespesas,
+                        borderWidth: 2,
                         fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#F44336',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
+                        tension: 0.45,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#F44336'
                     }
                 ]
             },
@@ -783,27 +787,27 @@ class FinancasApp {
                         position: 'top',
                         labels: {
                             usePointStyle: true,
-                            padding: 20,
+                            boxWidth: 8,
+                            padding: 16,
                             font: {
-                                size: 14,
-                                weight: '600'
+                                size: 13,
+                                weight: '500'
                             }
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                        borderWidth: 1,
-                        cornerRadius: 8,
-                        displayColors: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        cornerRadius: 6,
+                        displayColors: false,
                         callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': R$ ' + context.parsed.y.toLocaleString('pt-BR', {
+                            label: function (context) {
+                                return `${context.dataset.label}: R$ ${context.parsed.y.toLocaleString('pt-BR', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                });
+                                })}`;
                             }
                         }
                     }
@@ -814,30 +818,29 @@ class FinancasApp {
                             display: false
                         },
                         ticks: {
+                            color: '#aaa',
                             font: {
-                                size: 12,
-                                weight: '600'
+                                size: 11
                             }
                         }
                     },
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                            color: 'rgba(255, 255, 255, 0.05)'
                         },
                         ticks: {
+                            color: '#aaa',
                             font: {
-                                size: 12
+                                size: 11
                             },
-                            callback: function(value) {
-                                return 'R$ ' + value.toLocaleString('pt-BR');
-                            }
+                            callback: value => `R$ ${value.toLocaleString('pt-BR')}`
                         }
                     }
                 },
                 animation: {
-                    duration: 1000,
-                    easing: 'easeInOutQuart'
+                    duration: 1200,
+                    easing: 'easeOutQuart'
                 }
             }
         });
@@ -877,8 +880,8 @@ class FinancasApp {
                     legend: { position: 'top' },
                     tooltip: {
                         callbacks: {
-                            label: function(ctx){
-                                return `${ctx.dataset.label}: R$ ${ctx.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+                            label: function (ctx) {
+                                return `${ctx.dataset.label}: R$ ${ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
                             }
                         }
                     }
@@ -888,7 +891,7 @@ class FinancasApp {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: function(v){ return 'R$ ' + v.toLocaleString('pt-BR'); }
+                            callback: function (v) { return 'R$ ' + v.toLocaleString('pt-BR'); }
                         }
                     }
                 }
@@ -904,9 +907,9 @@ class FinancasApp {
         if (!dados) dados = await this.obterDadosFinanceiros();
         if (this.graficoDonutReceitas) this.graficoDonutReceitas.destroy();
 
-        const labels = dados.categoriasReceitas.map(c=>c.nome);
-        const valores = dados.categoriasReceitas.map(c=>c.valor);
-        const cores = dados.categoriasReceitas.map(c=>c.cor || '#4CAF50');
+        const labels = dados.categoriasReceitas.map(c => c.nome);
+        const valores = dados.categoriasReceitas.map(c => c.valor);
+        const cores = dados.categoriasReceitas.map(c => c.cor || '#4CAF50');
 
         this.graficoDonutReceitas = new Chart(ctx, {
             type: 'doughnut',
@@ -921,11 +924,13 @@ class FinancasApp {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!dados) dados = await this.obterDadosFinanceiros();
+        console.log("EXIBINDO DADOS TRAZIDOS PARA PREENCHER O DONUT DE DESPESA ____________________");
+        console.log(dados);
         if (this.graficoDonutDespesas) this.graficoDonutDespesas.destroy();
 
-        const labels = dados.categoriasDespesas.map(c=>c.nome);
-        const valores = dados.categoriasDespesas.map(c=>c.valor);
-        const cores = dados.categoriasDespesas.map(c=>c.cor || '#F44336');
+        const labels = dados.categoriasDespesas.map(c => c.nome);
+        const valores = dados.categoriasDespesas.map(c => c.valor);
+        const cores = dados.categoriasDespesas.map(c => c.cor || '#F44336');
 
         this.graficoDonutDespesas = new Chart(ctx, {
             type: 'doughnut',
@@ -979,7 +984,7 @@ class FinancasApp {
                         borderColor: '#6C63FF',
                         borderWidth: 1,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return `${context.label}: R$ ${context.parsed.y.toLocaleString('pt-BR')}`;
                             }
                         }
@@ -993,7 +998,7 @@ class FinancasApp {
                             font: {
                                 size: 12
                             },
-                            callback: function(value) {
+                            callback: function (value) {
                                 return 'R$ ' + value.toLocaleString('pt-BR');
                             }
                         },
@@ -1052,7 +1057,8 @@ class FinancasApp {
                         <div class="categoria-barra">
                             <div class="categoria-progresso" style="width: ${percentual}%; background-color: ${categoria.cor}"></div>
                         </div>
-                    </div>`;
+                    </div>`
+                    ;
                 container.appendChild(el);
             });
         };

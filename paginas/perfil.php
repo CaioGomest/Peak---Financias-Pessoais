@@ -54,14 +54,6 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
                     </div>
                     <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
                 </button>
-                <button class="perfil-item" onclick="alternarTema()">
-                    <div class="perfil-item-icon"><i class="fas fa-palette"></i></div>
-                    <div class="perfil-item-content">
-                        <div class="perfil-item-title">Tema</div>
-                        <div class="perfil-item-desc">Alternar aparência</div>
-                    </div>
-                    <div class="perfil-item-arrow"><i class="fas fa-chevron-right"></i></div>
-                </button>
                 <button class="perfil-item" onclick="exportarDados()">
                     <div class="perfil-item-icon"><i class="fas fa-download"></i></div>
                     <div class="perfil-item-content">
@@ -262,30 +254,6 @@ function fecharModalPerfil() {
 }
 
 
-// Alternar tema
-function alternarTema() {
-    temaEscuro = !temaEscuro;
-    var toggleElement = document.getElementById('toggle-tema');
-    
-    if (temaEscuro) {
-        if (toggleElement) { toggleElement.classList.add('ativo'); }
-        document.body.classList.add('tema-escuro');
-        document.body.classList.remove('tema-claro');
-    } else {
-        if (toggleElement) { toggleElement.classList.remove('ativo'); }
-        document.body.classList.remove('tema-escuro');
-        document.body.classList.add('tema-claro');
-    }
-    
-    localStorage.setItem('temaEscuro', temaEscuro);
-    
-    var textoOpcao = toggleElement ? toggleElement.closest('.item-opcao')?.querySelector('.texto-opcao') : null;
-    if (textoOpcao) {
-        var textoOriginal = textoOpcao.textContent;
-        textoOpcao.textContent = temaEscuro ? 'Tema escuro ativado' : 'Tema claro ativado';
-        setTimeout(function() { textoOpcao.textContent = textoOriginal || 'Alternar tema'; }, 1500);
-    }
-}
 
 // Exportar dados
 function exportarDados() {
