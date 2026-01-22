@@ -101,13 +101,6 @@ if (substr($base_app, -1) !== '/') { $base_app .= '/'; }
 </div>
 <?php if (!$esta_no_index) echo '</div>'; ?>
 <?php if (!$esta_no_index): ?>
-    <nav class="menu-inferior">
-        <a href="<?php echo $base_app; ?>index.php?pagina=dashboard" class="menu-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
-        <a href="<?php echo $base_app; ?>index.php?pagina=transacoes" class="menu-item"><i class="fas fa-exchange-alt"></i><span>Transações</span></a>
-        <div class="espaco-central"></div>
-        <a href="<?php echo $base_app; ?>index.php?pagina=categorias" class="menu-item"><i class="fas fa-tags"></i><span>Categorias</span></a>
-        <a href="<?php echo $base_app; ?>index.php?pagina=perfil" class="menu-item"><i class="fas fa-user"></i><span>Perfil</span></a>
-    </nav>
     <div class="menu-overlay" id="menu-overlay"></div>
     <a href="#" class="botao-adicionar-central" onclick="toggleMenuCircular()"><i class="fas fa-plus"></i></a>
     <div class="menu-circular" id="menu-circular">
