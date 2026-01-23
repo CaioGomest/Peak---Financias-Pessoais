@@ -29,7 +29,7 @@ $resumo_inicio = $dados_iniciais['resumo'];
         </div>
     </div>
 
-    <!-- Resumo Rápido -->
+    <!-- Resumo Rápido
     <div class="resumo-transacoes">
         <div class="resumo-card receitas">
             <div class="resumo-icon">
@@ -58,7 +58,7 @@ $resumo_inicio = $dados_iniciais['resumo'];
                 <span class="resumo-valor" id="saldo-periodo"><?php echo 'R$ ' . number_format($resumo_inicio['saldo_atual'], 2, ',', '.'); ?></span>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Filtros -->
     <div class="transacoes-filtros">
@@ -197,46 +197,46 @@ function formatarData(data) {
     });
 }
 
-// Função para calcular resumo das transações
-function calcularResumo(transacoes) {
-    const resumo = {
-        receitas: 0,
-        despesas: 0,
-        saldo: 0
-    };
+// // Função para calcular resumo das transações
+// function calcularResumo(transacoes) {
+//     const resumo = {
+//         receitas: 0,
+//         despesas: 0,
+//         saldo: 0
+//     };
 
-    transacoes.forEach(transacao => {
-        const ehTransferencia = (transacao.eh_transferencia === 1) || (typeof transacao.observacoes === 'string' && transacao.observacoes.indexOf('TRANSFERENCIA:') === 0);
-        if (ehTransferencia) return;
-        if (transacao.tipo === 'receita') {
-            resumo.receitas += parseFloat(transacao.valor);
-        } else {
-            resumo.despesas += parseFloat(transacao.valor);
-        }
-    });
+//     transacoes.forEach(transacao => {
+//         const ehTransferencia = (transacao.eh_transferencia === 1) || (typeof transacao.observacoes === 'string' && transacao.observacoes.indexOf('TRANSFERENCIA:') === 0);
+//         if (ehTransferencia) return;
+//         if (transacao.tipo === 'receita') {
+//             resumo.receitas += parseFloat(transacao.valor);
+//         } else {
+//             resumo.despesas += parseFloat(transacao.valor);
+//         }
+//     });
 
-    resumo.saldo = resumo.receitas - resumo.despesas;
-    return resumo;
-}
+//     resumo.saldo = resumo.receitas - resumo.despesas;
+//     return resumo;
+// }
 
-// Função para atualizar resumo na interface
-function atualizarResumo(transacoes) {
-    const resumo = calcularResumo(transacoes);
+// // Função para atualizar resumo na interface
+// function atualizarResumo(transacoes) {
+//     const resumo = calcularResumo(transacoes);
     
-    document.getElementById('total-receitas').textContent = formatarMoeda(resumo.receitas);
-    document.getElementById('total-despesas').textContent = formatarMoeda(resumo.despesas);
+//     document.getElementById('total-receitas').textContent = formatarMoeda(resumo.receitas);
+//     document.getElementById('total-despesas').textContent = formatarMoeda(resumo.despesas);
     
-    const saldoElement = document.getElementById('saldo-periodo');
-    saldoElement.textContent = formatarMoeda(resumo.saldo);
-    // Aplicar cor apenas quando positivo (>0) ou negativo (<0); zero fica neutro
-    let classeSaldo = 'resumo-valor';
-    if (resumo.saldo > 0) {
-        classeSaldo += ' positivo';
-    } else if (resumo.saldo < 0) {
-        classeSaldo += ' negativo';
-    }
-    saldoElement.className = classeSaldo;
-}
+//     const saldoElement = document.getElementById('saldo-periodo');
+//     saldoElement.textContent = formatarMoeda(resumo.saldo);
+//     // Aplicar cor apenas quando positivo (>0) ou negativo (<0); zero fica neutro
+//     let classeSaldo = 'resumo-valor';
+//     if (resumo.saldo > 0) {
+//         classeSaldo += ' positivo';
+//     } else if (resumo.saldo < 0) {
+//         classeSaldo += ' negativo';
+//     }
+//     saldoElement.className = classeSaldo;
+// }
 
 // Função para renderizar transações
 function normalizarTransacoesComTransferencias(transacoes) {

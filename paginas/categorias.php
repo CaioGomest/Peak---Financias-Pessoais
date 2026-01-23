@@ -60,39 +60,6 @@ function adicionarParametroTipo($base, $tipo) {
     })();
     </script>
 
-    <div class="menu-overlay" id="menu-overlay"></div>
-    <div class="menu-circular" id="menu-circular">
-        <a href="#" class="opcao-menu receita" onclick="abrirModalTransacao('receita')" title="Nova Receita">
-            <i class="fas fa-arrow-up"></i>
-            <span>Receita</span>
-        </a>
-        <a href="#" class="opcao-menu despesa" onclick="abrirModalTransacao('despesa')" title="Nova Despesa">
-            <i class="fas fa-arrow-down"></i>
-            <span>Despesa</span>
-        </a>
-        <a href="#" class="opcao-menu transferencia" onclick="abrirModalTransacao('transferencia')" title="Transferência">
-            <i class="fas fa-exchange-alt"></i>
-            <span>Transferência</span>
-        </a>
-    </div>
-    <script>
-        function toggleMenuCircular() {
-            var menu = document.getElementById('menu-circular');
-            var overlay = document.getElementById('menu-overlay');
-            if (!menu || !overlay) return;
-            menu.classList.toggle('ativo');
-            overlay.classList.toggle('ativo');
-        }
-        (function(){
-            var overlay = document.getElementById('menu-overlay');
-            if (overlay) {
-                overlay.addEventListener('click', function(){
-                    document.getElementById('menu-circular').classList.remove('ativo');
-                    overlay.classList.remove('ativo');
-                });
-            }
-        })();
-    </script>
 <?php endif; ?>
 <div class="pagina-categorias">
     <div class="categorias-header">

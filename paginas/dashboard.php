@@ -174,7 +174,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="glass-panel p-6 rounded-2xl">
+                <div class="glass-panel p-6 rounded-2xl md:col-span-2">
                     <h3 class="text-sm font-medium text-white mb-6">Entradas e Saídas</h3>
                     <div class="h-64"><canvas id="grafico-linhas"></canvas></div>
                 </div>
