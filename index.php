@@ -50,11 +50,13 @@ if (!file_exists($arquivo_pagina_inicial)) {
 
 <head>
     <meta charset="UTF-8">
+    <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanças Pessoais</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // PDF.js loader (mantido original)
         (function () {
@@ -118,7 +120,7 @@ if (!file_exists($arquivo_pagina_inicial)) {
                 <div class="app-logo"><i class="fas fa-tree"></i></div>
                 <div class="app-titles">
                     <span class="app-title">PEAK</span>
-                    <span class="app-subtitle">Gestão Financeira</span>
+                    <span class="app-subtitle">Otimização Financeira</span>
                 </div>
             </div>
             <div class="app-header-right">
@@ -203,7 +205,8 @@ if (!file_exists($arquivo_pagina_inicial)) {
         </div>
     </div>
 
-    <script src="assets/js/app.js"></script>
+    <script src="/assets/js/app.js"></script>
+
     <script>
         var paginaAtual = '<?= $pagina_inicial ?>';
 
@@ -280,10 +283,6 @@ if (!file_exists($arquivo_pagina_inicial)) {
             var isDark = document.body.classList.toggle('tema-escuro');
             document.body.classList.toggle('tema-claro', !isDark);
             localStorage.setItem('temaEscuro', isDark);
-        }
-
-        if (window.tailwind) {
-            window.tailwind.reprocess();
         }
     </script>
 </body>

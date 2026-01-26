@@ -3,9 +3,7 @@ require_once __DIR__ . '/../funcoes/transacoes.php';
 $dados_iniciais = lerTransacoes();
 $resumo_inicio = $dados_iniciais['resumo'];
 ?>
-<!-- Página de Transações Reestruturada -->
 <div class="pagina-transacoes">
-    <!-- Header da Página -->
     <div class="transacoes-header">
         <div class="transacoes-background"></div>
         <div class="header-content">
@@ -60,7 +58,7 @@ $resumo_inicio = $dados_iniciais['resumo'];
         </div>
     </div> -->
 
-    <!-- Filtros -->
+
     <div class="transacoes-filtros">
         <div class="filtros-container">
             <div class="filtro-grupo">
@@ -404,7 +402,7 @@ function filtrarTransacoes() {
     }
 
     renderizarTransacoes(transacoesFiltradas);
-    atualizarResumo(transacoesFiltradas);
+    // atualizarResumo(transacoesFiltradas);
 }
 
 // Função para carregar transações da API
@@ -533,7 +531,7 @@ window.inicializarTransacoes = function() {
 
     carregarCategoriasFiltro();
     filtrarTransacoes();
-    atualizarResumo(todasTransacoes);
+    // atualizarResumo(todasTransacoes);
     carregarTransacoes();
 
     const btnCancelar = document.getElementById('cancelar-selecao');
@@ -565,7 +563,7 @@ if (document.readyState === 'loading') {
 (function primeiraRenderizacao(){
     try {
         filtrarTransacoes();
-        atualizarResumo(todasTransacoes);
+        // atualizarResumo(todasTransacoes);
     } catch(e) {}
 })();
 

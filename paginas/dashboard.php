@@ -27,7 +27,6 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wealth OS - Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -96,7 +95,6 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 class="text-3xl md:text-4xl font-medium tracking-tight text-white">Dashboard </h1>
-                    <p class="text-sm text-zinc-500 mt-1">Otimização Financeira</p>
                     <p class="text-sm text-zinc-500 mt-1 underline" id="descricao-periodo"></p>
                 </div>
 
