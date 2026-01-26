@@ -16,8 +16,9 @@ if (usuarioLogado()) {
 $saldo_total = calcularSaldoTotal($usuario_id);
 $configuracoes = lerConfiguracoes($usuario_id);
 $simbolo_moeda = $configuracoes['preferencias']['simbolo_moeda'] ?? 'R$';
-function formatar_moeda_php($valor, $simbolo = 'R$') {
-    return $simbolo . ' ' . number_format((float)$valor, 2, ',', '.');
+function formatar_moeda_php($valor, $simbolo = 'R$')
+{
+    return $simbolo . ' ' . number_format((float) $valor, 2, ',', '.');
 }
 $nome_usuario = $usuario_atual['nome'] ?? 'Usuário';
 $foto_usuario = $usuario_atual['foto_perfil'] ?? '';
@@ -28,11 +29,14 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
         <div class="perfil-resumo card">
             <div class="perfil-resumo-left">
                 <div class="perfil-resumo-avatar">
-                    <img src="<?php echo htmlspecialchars($url_avatar_perfil); ?>" alt="Avatar" class="perfil-resumo-avatar-img">
+                    <img src="<?php echo htmlspecialchars($url_avatar_perfil); ?>" alt="Avatar"
+                        class="perfil-resumo-avatar-img">
                 </div>
                 <div class="perfil-resumo-info">
                     <h1 id="nome-usuario"><?php echo htmlspecialchars($nome_usuario); ?></h1>
-                    <p id="email-usuario"><?php echo htmlspecialchars($usuario_atual['email'] ?? 'usuario@email.com'); ?></p>
+                    <p id="email-usuario">
+                        <?php echo htmlspecialchars($usuario_atual['email'] ?? 'usuario@email.com'); ?>
+                    </p>
                 </div>
             </div>
             <div class="perfil-resumo-saldo">
@@ -40,6 +44,12 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
                 <div class="saldo-valor <?php echo ($saldo_total >= 0) ? 'positivo' : 'negativo'; ?>" id="saldo-total">
                     <?php echo htmlspecialchars(formatar_moeda_php($saldo_total, $simbolo_moeda)); ?>
                 </div>
+            </div>
+        </div>
+        <div class="glass-panel p-6 rounded-2xl my-6">
+            <!-- <h1 class="text-xl font-bold mb-4">Performance</h1> -->
+            <div class="">
+                <canvas id="grafico-performance" width="400" height="400"></canvas>
             </div>
         </div>
 
@@ -97,89 +107,89 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
 </div>
 
 <script>
-// Variáveis globais para o perfil
-var dadosUsuario = <?php echo json_encode($usuario_atual, JSON_UNESCAPED_UNICODE); ?>;
-var temaEscuro = false;
+    // Variáveis globais para o perfil
+    var dadosUsuario = <?php echo json_encode($usuario_atual, JSON_UNESCAPED_UNICODE); ?>;
+    var temaEscuro = false;
 
-// Helper para compor URLs relativas ao diretório da aplicação
-function obterUrl(caminho) {
-    var caminhoNormalizado = (caminho || '').replace(/^\//, '');
-    var path = window.location.pathname || '';
-    var base = path;
-    if (base.endsWith('/index.php')) {
-        base = base.replace('/index.php', '');
+    // Helper para compor URLs relativas ao diretório da aplicação
+    function obterUrl(caminho) {
+        var caminhoNormalizado = (caminho || '').replace(/^\//, '');
+        var path = window.location.pathname || '';
+        var base = path;
+        if (base.endsWith('/index.php')) {
+            base = base.replace('/index.php', '');
+        }
+        if (base.includes('/paginas/')) {
+            base = base.split('/paginas/')[0];
+        }
+        if (base.includes('/modais/')) {
+            base = base.split('/modais/')[0];
+        }
+        if (!base.endsWith('/')) base += '/';
+        return base + caminhoNormalizado;
     }
-    if (base.includes('/paginas/')) {
-        base = base.split('/paginas/')[0];
+
+    // Carregar dados do perfil quando a página for carregada
+    function carregarDadosPerfil() {
+        // Atualizar elementos com dados já fornecidos pelo servidor
+        var nomeElement = document.getElementById('nome-usuario');
+        var emailElement = document.getElementById('email-usuario');
+        if (nomeElement) nomeElement.textContent = dadosUsuario.nome || 'Usuário';
+        if (emailElement) emailElement.textContent = dadosUsuario.email || 'usuario@email.com';
+
+        // Carregar saldo total real via API (opcional para manter atualizado)
+        carregarSaldoTotal();
+
+        // Verificar tema salvo
+        var temaSalvo = localStorage.getItem('temaEscuro');
+        var toggleElement = document.getElementById('toggle-tema');
+
+        if (temaSalvo === 'true') {
+            temaEscuro = true;
+            if (toggleElement) { toggleElement.classList.add('ativo'); }
+            document.body.classList.add('tema-escuro');
+            document.body.classList.remove('tema-claro');
+        } else {
+            temaEscuro = false;
+            if (toggleElement) { toggleElement.classList.remove('ativo'); }
+            document.body.classList.remove('tema-escuro');
+            document.body.classList.add('tema-claro');
+        }
     }
-    if (base.includes('/modais/')) {
-        base = base.split('/modais/')[0];
+
+    // Carregar saldo total
+    function carregarSaldoTotal() {
+        var saldoElement = document.getElementById('saldo-total');
+        if (!saldoElement) return;
+
+        fetch(obterUrl('funcoes/transacoes.php?api=transacoes&acao=saldo_total'))
+            .then(function (response) {
+                if (!response.ok) throw new Error('Erro ao obter saldo total');
+                return response.json();
+            })
+            .then(function (data) {
+                var saldo = (data && typeof data.saldo === 'number') ? data.saldo : <?php echo json_encode($saldo_total); ?>;
+                saldoElement.textContent = formatarMoeda(saldo);
+                saldoElement.className = 'saldo-valor ' + (saldo >= 0 ? 'positivo' : 'negativo');
+            })
+            .catch(function (err) {
+                console.error('Erro saldo total:', err);
+            });
     }
-    if (!base.endsWith('/')) base += '/';
-    return base + caminhoNormalizado;
-}
 
-// Carregar dados do perfil quando a página for carregada
-function carregarDadosPerfil() {
-    // Atualizar elementos com dados já fornecidos pelo servidor
-    var nomeElement = document.getElementById('nome-usuario');
-    var emailElement = document.getElementById('email-usuario');
-    if (nomeElement) nomeElement.textContent = dadosUsuario.nome || 'Usuário';
-    if (emailElement) emailElement.textContent = dadosUsuario.email || 'usuario@email.com';
-
-    // Carregar saldo total real via API (opcional para manter atualizado)
-    carregarSaldoTotal();
-
-    // Verificar tema salvo
-    var temaSalvo = localStorage.getItem('temaEscuro');
-    var toggleElement = document.getElementById('toggle-tema');
-    
-    if (temaSalvo === 'true') {
-        temaEscuro = true;
-        if (toggleElement) { toggleElement.classList.add('ativo'); }
-        document.body.classList.add('tema-escuro');
-        document.body.classList.remove('tema-claro');
-    } else {
-        temaEscuro = false;
-        if (toggleElement) { toggleElement.classList.remove('ativo'); }
-        document.body.classList.remove('tema-escuro');
-        document.body.classList.add('tema-claro');
-    }
-}
-
-// Carregar saldo total
-function carregarSaldoTotal() {
-    var saldoElement = document.getElementById('saldo-total');
-    if (!saldoElement) return;
-    
-    fetch(obterUrl('funcoes/transacoes.php?api=transacoes&acao=saldo_total'))
-        .then(function(response) {
-            if (!response.ok) throw new Error('Erro ao obter saldo total');
-            return response.json();
-        })
-        .then(function(data) {
-            var saldo = (data && typeof data.saldo === 'number') ? data.saldo : <?php echo json_encode($saldo_total); ?>;
-            saldoElement.textContent = formatarMoeda(saldo);
-            saldoElement.className = 'saldo-valor ' + (saldo >= 0 ? 'positivo' : 'negativo');
-        })
-        .catch(function(err) {
-            console.error('Erro saldo total:', err);
+    // Função para formatar moeda
+    function formatarMoeda(valor) {
+        return 'R$ ' + valor.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
-}
+    }
 
-// Função para formatar moeda
-function formatarMoeda(valor) {
-    return 'R$ ' + valor.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-// Abrir modal para editar perfil
-function abrirModalEditarPerfil() {
-    var tel = dadosUsuario.telefone || '';
-    var cpf = dadosUsuario.cpf || '';
-    var modalHTML = `
+    // Abrir modal para editar perfil
+    function abrirModalEditarPerfil() {
+        var tel = dadosUsuario.telefone || '';
+        var cpf = dadosUsuario.cpf || '';
+        var modalHTML = `
         <div class="modal" id="modal-editar-perfil" style="opacity:1;pointer-events:all;position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;z-index:1000;background:rgba(0,0,0,0.5)">
             <div class="modal-conteudo" style="background:var(--cor-fundo-secundario);padding:20px;border-radius:12px;width:95%;max-width:520px;color:var(--cor-texto)">
                 <div class="modal-cabecalho" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -210,121 +220,242 @@ function abrirModalEditarPerfil() {
                 </div>
             </div>
         </div>`;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-}
 
-// Salvar alterações do perfil
-function salvarPerfil() {
-    var novoNome = document.getElementById('edit-nome').value;
-    var novoEmail = document.getElementById('edit-email').value;
-    var novoTelefone = document.getElementById('edit-telefone').value;
-    var novoCpf = document.getElementById('edit-cpf').value;
-    var dados = { nome: novoNome.trim(), email: novoEmail.trim(), telefone: novoTelefone.trim(), cpf: novoCpf.trim() };
-    fetch(obterUrl('funcoes/usuario.php?api=usuario&acao=atualizar'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados)
-    }).then(function(resp){
-        return resp.text().then(function(texto){
-            var ok = resp.ok;
-            var retorno;
-            try { retorno = texto ? JSON.parse(texto) : {}; } catch(e){ retorno = { erro: 'Resposta inválida', detalhe: e.message }; }
-            return { ok: ok, dados: retorno, status: resp.status };
-        });
-    }).then(function(r){
-        if (r.ok && r.dados && r.dados.sucesso) {
-            dadosUsuario.nome = dados.nome;
-            dadosUsuario.email = dados.email;
-            dadosUsuario.telefone = dados.telefone;
-            dadosUsuario.cpf = dados.cpf;
-            carregarDadosPerfil();
-            fecharModalPerfil();
-            alert('Perfil atualizado com sucesso!');
-        } else {
-            var msg = (r.dados && (r.dados.erro || r.dados.detalhe)) ? (r.dados.erro + (r.dados.detalhe ? ' - ' + r.dados.detalhe : '')) : ('Erro HTTP ' + r.status);
-            alert(msg);
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    // Salvar alterações do perfil
+    function salvarPerfil() {
+        var novoNome = document.getElementById('edit-nome').value;
+        var novoEmail = document.getElementById('edit-email').value;
+        var novoTelefone = document.getElementById('edit-telefone').value;
+        var novoCpf = document.getElementById('edit-cpf').value;
+        var dados = { nome: novoNome.trim(), email: novoEmail.trim(), telefone: novoTelefone.trim(), cpf: novoCpf.trim() };
+        fetch(obterUrl('funcoes/usuario.php?api=usuario&acao=atualizar'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        }).then(function (resp) {
+            return resp.text().then(function (texto) {
+                var ok = resp.ok;
+                var retorno;
+                try { retorno = texto ? JSON.parse(texto) : {}; } catch (e) { retorno = { erro: 'Resposta inválida', detalhe: e.message }; }
+                return { ok: ok, dados: retorno, status: resp.status };
+            });
+        }).then(function (r) {
+            if (r.ok && r.dados && r.dados.sucesso) {
+                dadosUsuario.nome = dados.nome;
+                dadosUsuario.email = dados.email;
+                dadosUsuario.telefone = dados.telefone;
+                dadosUsuario.cpf = dados.cpf;
+                carregarDadosPerfil();
+                fecharModalPerfil();
+                alert('Perfil atualizado com sucesso!');
+            } else {
+                var msg = (r.dados && (r.dados.erro || r.dados.detalhe)) ? (r.dados.erro + (r.dados.detalhe ? ' - ' + r.dados.detalhe : '')) : ('Erro HTTP ' + r.status);
+                alert(msg);
+            }
+        }).catch(function (e) { alert('Erro: ' + (e && e.message ? e.message : 'Falha desconhecida')); });
+    }
+
+    function fecharModalPerfil() {
+        var modal = document.getElementById('modal-editar-perfil');
+        if (modal) modal.remove();
+    }
+
+    function construirGraficoPerformance() {
+        var canvas = document.getElementById('grafico-performance');
+        if (!canvas) {
+            console.log("Canvas de performance não encontrado");
+            return;
         }
-    }).catch(function(e){ alert('Erro: ' + (e && e.message ? e.message : 'Falha desconhecida')); });
-}
 
-function fecharModalPerfil() {
-    var modal = document.getElementById('modal-editar-perfil');
-    if (modal) modal.remove();
-}
+        const ctx = canvas.getContext("2d");
 
+        // 🔹 Labels (pilares de performance)
+        const labels = [
+            "Capital",
+            "Controle",
+            "Eficiência",
+            "Alocação",
+            "Disciplina",
+            "Ascensão"
+        ];
 
+        // 🔹 Dados de performance (0 a 100)
+        // depois você pode calcular isso dinamicamente
+        const performanceData = [
+            75, // Capital
+            68, // Controle
+            82, // Eficiência
+            70, // Alocação
+            65, // Disciplina
+            78  // Ascensão
+        ];
 
-// Exportar dados
-function exportarDados() {
-    // Criar objeto com todos os dados
-    var dados = {
-        usuario: dadosUsuario,
-        exportadoEm: new Date().toISOString(),
-        versao: '1.0.0'
+        // console.log("Dados de performance:", performanceData);
+        const gradient = ctx.createRadialGradient(
+            canvas.width / 2,
+            canvas.height / 2,
+            20,
+            canvas.width / 2,
+            canvas.height / 2,
+            canvas.width / 1.2
+        );
+        gradient.addColorStop(0, "rgba(251, 191, 36, 0.35)");
+        gradient.addColorStop(1, "rgba(251, 191, 36, 0.05)");
+
+        if (window.graficoPerformance) {
+            window.graficoPerformance.destroy();
+        }
+
+        window.graficoPerformance = new Chart(ctx, {
+            type: "radar",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Performance Geral",
+                        data: performanceData,
+                        backgroundColor: gradient,
+                        borderColor: "#fbbf24",
+                        borderWidth: 2,
+                        pointBackgroundColor: "#fbbf24",
+                        pointBorderColor: "#000",
+                        pointHoverBackgroundColor: "#fff",
+                        pointHoverBorderColor: "#fbbf24",
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                    }
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            color: "#aaa",
+                            backdropColor: "transparent",
+                            font: {
+                                size: 10,
+                            },
+                            callback: (value) => value + "%",
+                        },
+                        grid: {
+                            color: "rgba(255,255,255,0.08)",
+                        },
+                        angleLines: {
+                            color: "rgba(255,255,255,0.12)",
+                        },
+                        pointLabels: {
+                            color: "#e5e7eb",
+                            font: {
+                                size: 12,
+                                weight: "500",
+                            },
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                        padding: 12,
+                        cornerRadius: 6,
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${context.parsed.r}%`;
+                            },
+                        },
+                    },
+                },
+                animation: {
+                    duration: 1200,
+                    easing: "easeOutQuart",
+                },
+            },
+        });
+    }
+
+    // Exportar dados
+    function exportarDados() {
+        // Criar objeto com todos os dados
+        var dados = {
+            usuario: dadosUsuario,
+            exportadoEm: new Date().toISOString(),
+            versao: '1.0.0'
+        };
+
+        // Converter para JSON
+        var dadosJSON = JSON.stringify(dados, null, 2);
+
+        // Criar link para download
+        var blob = new Blob([dadosJSON], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'financas_pessoais_backup.json';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert('Dados exportados com sucesso!');
+    }
+
+    // Fazer logout
+    function fazerLogout() {
+        if (!confirm('Tem certeza que deseja sair?')) return;
+        try { localStorage.clear(); } catch (e) { }
+        try { sessionStorage.clear(); } catch (e) { }
+        fetch(obterUrl('funcoes/usuario.php'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'acao=logout'
+        })
+            .then(function () { window.location.href = obterUrl('login.php'); })
+            .catch(function () { window.location.href = obterUrl('login.php'); });
+    }
+
+    function abrirAssinatura() {
+        window.location.href = obterUrl('paginas/assinatura.php');
+    }
+
+    // Função para inicializar a página de perfil
+    window.inicializarPerfil = function () {
+        carregarDadosPerfil();
+        construirGraficoPerformance();  
     };
-    
-    // Converter para JSON
-    var dadosJSON = JSON.stringify(dados, null, 2);
-    
-    // Criar link para download
-    var blob = new Blob([dadosJSON], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'financas_pessoais_backup.json';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    alert('Dados exportados com sucesso!');
-}
 
-// Fazer logout
-function fazerLogout() {
-    if (!confirm('Tem certeza que deseja sair?')) return;
-    try { localStorage.clear(); } catch(e) {}
-    try { sessionStorage.clear(); } catch(e) {}
-    fetch(obterUrl('funcoes/usuario.php'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'acao=logout'
-    })
-    .then(function(){ window.location.href = obterUrl('login.php'); })
-    .catch(function(){ window.location.href = obterUrl('login.php'); });
-}
+    // Carregar dados quando a página for exibida
+    if (typeof carregarDadosPerfil === 'function') {
+        // Aguardar um pouco para garantir que os elementos estejam no DOM
+        setTimeout(function () {
+            window.inicializarPerfil();
+        }, 100);
+    }
 
-function abrirAssinatura(){
-    window.location.href = obterUrl('paginas/assinatura.php');
-}
-
-// Função para inicializar a página de perfil
-window.inicializarPerfil = function() {
-    carregarDadosPerfil();
-};
-
-// Carregar dados quando a página for exibida
-if (typeof carregarDadosPerfil === 'function') {
-    // Aguardar um pouco para garantir que os elementos estejam no DOM
-    setTimeout(function() {
-        window.inicializarPerfil();
-    }, 100);
-}
-
-// Se a página já estiver carregada, executar imediatamente
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.inicializarPerfil);
-} else {
-    // DOM já está carregado
-    setTimeout(window.inicializarPerfil, 100);
-}
-
-// Também executar quando a página de perfil for carregada via AJAX
-window.addEventListener('load', function() {
-    if (document.querySelector('.pagina-perfil')) {
+    // Se a página já estiver carregada, executar imediatamente
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.inicializarPerfil);
+    } else {
+        // DOM já está carregado
         setTimeout(window.inicializarPerfil, 100);
     }
-});
+
+    // Também executar quando a página de perfil for carregada via AJAX
+    window.addEventListener('load', function () {
+        if (document.querySelector('.pagina-perfil')) {
+            setTimeout(window.inicializarPerfil, 100);
+        }
+    });
+
+
 </script>

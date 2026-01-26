@@ -27,7 +27,6 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wealth OS - Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -96,7 +95,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 class="text-3xl md:text-4xl font-medium tracking-tight text-white">Dashboard </h1>
-                    <p class="text-sm text-zinc-500 mt-1" id="descricao-periodo">Visão geral das suas finanças</p>
+                    <p class="text-sm text-zinc-500 mt-1 underline" id="descricao-periodo"></p>
                 </div>
 
                 <div class="relative" id="seletor-bonito-periodo" style="overflow: visible;">
@@ -106,6 +105,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
                             <span id="texto-seletor-periodo">Mês Atual</span>
                             <iconify-icon icon="solar:alt-arrow-down-linear"></iconify-icon>
                         </button>
+
 
                         <button class="botao-ocultar p-2 rounded" onclick="app.toggleOcultarValores()">
                             <i class="fas fa-eye" id="icone-ocultar"></i>
@@ -154,7 +154,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
 
                 <!-- CARD DE RECEITA -->
                 <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group col-span-2 md:col-span-1">
-                    <p class="text-xs text-zinc-500 mb-1">Receitas</p>
+                    <p class="text-xs text-zinc-500 mb-1">Receita</p>
                     <p class="text-large md:text-xl font-medium text-white tracking-tight" id="valor-receitas">
                         <?php echo $simbolo_moeda . ' ' . number_format($resumo['total_receitas'], 2, ',', '.'); ?>
                     </p>
@@ -164,8 +164,8 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
                 <!-- CARD DE DESPESA -->
                 <div
                     class="glass-panel p-6 rounded-2xl relative overflow-hidden group col-span-2 col-start-3 md:col-span-1">
-                    <p class="text-xs text-zinc-500 mb-1">Despesas</p>
-                    <p class="text-large md:text-xl font-medium text-white tracking-tight" id="valor-despesas">
+                    <p class="text-xs text-zinc-500 mb-1">Vazamento</p>
+                    <p class="text-large md:text-xl font-medium text-red-800 tracking-tight" id="valor-despesas">
                         <?php echo $simbolo_moeda . ' ' . number_format($resumo['total_despesas'], 2, ',', '.'); ?>
                     </p>
                     <p class="text-large md:text-xl font-medium text-white tracking-tight" id="despesas-oculto"
@@ -174,7 +174,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="glass-panel p-6 rounded-2xl">
+                <div class="glass-panel p-6 rounded-2xl md:col-span-2">
                     <h3 class="text-sm font-medium text-white mb-6">Entradas e Saídas</h3>
                     <div class="h-64"><canvas id="grafico-linhas"></canvas></div>
                 </div>
@@ -188,7 +188,7 @@ $url_avatar = $foto_usuario ? $foto_usuario : 'https://ui-avatars.com/api/?name=
                         <canvas id="grafico-donut-despesas"></canvas>
                     </div>
                     <div id="lista-categorias-despesas" class="mt-4 space-y-1"></div>
-                </div> 
+                </div>
                 <div class="glass-panel p-6 rounded-2xl">
                     <h3 class="text-sm font-medium text-white mb-6 flex items-center gap-2">
                         <iconify-icon icon="solar:pie-chart-2-linear" class="text-emerald-500"></iconify-icon>

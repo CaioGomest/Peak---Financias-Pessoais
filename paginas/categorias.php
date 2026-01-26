@@ -38,13 +38,6 @@ function adicionarParametroTipo($base, $tipo) {
 }
 ?>
 <?php if (!$esta_no_index): ?>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo $base_app; ?>assets/css/style.css">
-</head>
-<body>
     <script>
     (function() {
         try {
@@ -60,39 +53,6 @@ function adicionarParametroTipo($base, $tipo) {
     })();
     </script>
 
-    <div class="menu-overlay" id="menu-overlay"></div>
-    <div class="menu-circular" id="menu-circular">
-        <a href="#" class="opcao-menu receita" onclick="abrirModalTransacao('receita')" title="Nova Receita">
-            <i class="fas fa-arrow-up"></i>
-            <span>Receita</span>
-        </a>
-        <a href="#" class="opcao-menu despesa" onclick="abrirModalTransacao('despesa')" title="Nova Despesa">
-            <i class="fas fa-arrow-down"></i>
-            <span>Despesa</span>
-        </a>
-        <a href="#" class="opcao-menu transferencia" onclick="abrirModalTransacao('transferencia')" title="Transferência">
-            <i class="fas fa-exchange-alt"></i>
-            <span>Transferência</span>
-        </a>
-    </div>
-    <script>
-        function toggleMenuCircular() {
-            var menu = document.getElementById('menu-circular');
-            var overlay = document.getElementById('menu-overlay');
-            if (!menu || !overlay) return;
-            menu.classList.toggle('ativo');
-            overlay.classList.toggle('ativo');
-        }
-        (function(){
-            var overlay = document.getElementById('menu-overlay');
-            if (overlay) {
-                overlay.addEventListener('click', function(){
-                    document.getElementById('menu-circular').classList.remove('ativo');
-                    overlay.classList.remove('ativo');
-                });
-            }
-        })();
-    </script>
 <?php endif; ?>
 <div class="pagina-categorias">
     <div class="categorias-header">
@@ -302,5 +262,4 @@ if (!$esta_no_index) {
 }
 ?>
 <?php if (!$esta_no_index): ?>
-</body>
 <?php endif; ?>
