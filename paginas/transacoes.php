@@ -80,18 +80,16 @@ $resumo_inicio = $dados_iniciais['resumo'];
                 </select>
             </div>
             <div class="filtro-grupo">
+                <label for="filtro-ano">Ano</label>
+                <select id="filtro-ano" class="filtro-select">
+                    <option value="">Todos os anos</option>
+                </select>
+            </div>
+            <div class="filtro-grupo">
                 <label for="filtro-categoria">Categoria</label>
                 <select id="filtro-categoria" class="filtro-select">
                     <option value="">Todas</option>
                     <!-- Categorias serão carregadas via JavaScript -->
-                </select>
-            </div>
-            <div class="filtro-grupo">
-                <label for="filtro-tipo">Tipo</label>
-                <select id="filtro-tipo" class="filtro-select">
-                    <option value="">Todos</option>
-                    <option value="receita">Receitas</option>
-                    <option value="despesa">Despesas</option>
                 </select>
             </div>
         </div>
@@ -109,6 +107,7 @@ $resumo_inicio = $dados_iniciais['resumo'];
         <div class="transacoes-lista" id="lista-transacoes-container" style="<?php echo (count($dados_iniciais['transacoes'])>0)?'display:block':'display:none'; ?>">
             <!-- As transações serão carregadas aqui via JavaScript -->
         </div>
+        <div id="paginador-container" style="display:none"></div>
         
         <!-- Estado Vazio -->
         <div id="mensagem-vazia" class="estado-vazio" style="<?php echo (count($dados_iniciais['transacoes'])>0)?'display:none':''; ?>">
@@ -157,12 +156,18 @@ function obterUrl(caminho) {
 let todasTransacoes = <?php echo json_encode($dados_iniciais['transacoes'], JSON_UNESCAPED_UNICODE); ?>;
 let filtroAtual = {
     mes: null,
+    ano: null,
     categoria: '',
-    tipo: ''
+    tipo: null
 };
 let modoSelecao = false;
 let selecionados = new Set();
 let temporizadorPress = null;
+window.estadoTransacoes = window.estadoTransacoes || { paginaAtual: 1, tamanhoPagina: 30 };
+function getPaginaAtual() { return window.estadoTransacoes.paginaAtual; }
+function setPaginaAtual(v) { window.estadoTransacoes.paginaAtual = v; }
+function getTamanhoPagina() { return window.estadoTransacoes.tamanhoPagina; }
+function setTamanhoPagina(v) { window.estadoTransacoes.tamanhoPagina = v; }
 
 function getCorTipoTransacao(tipo) {
     if (tipo === 'transferencia') return '#6C63FF';
@@ -277,29 +282,39 @@ function normalizarTransacoesComTransferencias(transacoes) {
 function renderizarTransacoes(transacoes) {
     const container = document.getElementById('lista-transacoes-container');
     const mensagemVazia = document.getElementById('mensagem-vazia');
+    const paginador = document.getElementById('paginador-container');
 
     const lista = normalizarTransacoesComTransferencias(transacoes);
 
     if (lista.length === 0) {
         container.style.display = 'none';
         mensagemVazia.style.display = 'flex';
+        if (paginador) paginador.style.display = 'none';
         return;
     }
 
     container.style.display = 'block';
     mensagemVazia.style.display = 'none';
 
-    // Agrupar transações por data
+    const itensOrdenados = [...lista].sort((a, b) => {
+        const da = new Date(a.data_transacao);
+        const db = new Date(b.data_transacao);
+        return db - da;
+    });
+    const totalItens = itensOrdenados.length;
+    const totalPaginas = Math.max(1, Math.ceil(totalItens / getTamanhoPagina()));
+    if (getPaginaAtual() > totalPaginas) setPaginaAtual(totalPaginas);
+    if (getPaginaAtual() < 1) setPaginaAtual(1);
+    const ini = (getPaginaAtual() - 1) * getTamanhoPagina();
+    const fim = ini + getTamanhoPagina();
+    const itensPagina = itensOrdenados.slice(ini, fim);
+
     const transacoesPorData = {};
-    lista.forEach(transacao => {
+    itensPagina.forEach(transacao => {
         const data = transacao.data_transacao.split(' ')[0];
-        if (!transacoesPorData[data]) {
-            transacoesPorData[data] = [];
-        }
+        if (!transacoesPorData[data]) transacoesPorData[data] = [];
         transacoesPorData[data].push(transacao);
     });
-
-    // Ordenar datas (mais recente primeiro)
     const datasOrdenadas = Object.keys(transacoesPorData).sort((a, b) => new Date(b) - new Date(a));
 
     let html = '';
@@ -369,6 +384,64 @@ function renderizarTransacoes(transacoes) {
     });
 
     container.innerHTML = html;
+    if (paginador) {
+        const inicioExibido = totalItens ? (ini + 1) : 0;
+        const fimExibido = Math.min(fim, totalItens);
+        const paginas = (function(){
+            const arr = [];
+            const max = totalPaginas;
+            const cur = getPaginaAtual();
+            const push = (v)=>arr.push(v);
+            push(1);
+            if (cur > 3) push('…');
+            for (let i = Math.max(2, cur-1); i <= Math.min(max-1, cur+1); i++) push(i);
+            if (cur < max-2) push('…');
+            if (max > 1) push(max);
+            return arr;
+        })();
+        paginador.innerHTML = `
+            <div class="paginador">
+                <div class="paginador-info">Mostrando ${inicioExibido}–${fimExibido} de ${totalItens}</div>
+                <div class="paginador-controles">
+                    <button id="pag-primeira" class="paginador-btn" ${getPaginaAtual()<=1?'disabled':''} title="Primeira">«</button>
+                    <button id="pag-anterior" class="paginador-btn" ${getPaginaAtual()<=1?'disabled':''} title="Anterior">‹</button>
+                    ${paginas.map(p => p==='…' ? `<span class="paginador-btn" style="pointer-events:none">…</span>` : `<button class="paginador-btn ${p===getPaginaAtual()?'ativo':''}" data-pagina="${p}">${p}</button>`).join('')}
+                    <button id="pag-proximo" class="paginador-btn" ${getPaginaAtual()>=totalPaginas?'disabled':''} title="Próximo">›</button>
+                    <button id="pag-ultima" class="paginador-btn" ${getPaginaAtual()>=totalPaginas?'disabled':''} title="Última">»</button>
+                    <div class="paginador-seletor">
+                        <span>por página</span>
+                        <select id="paginador-tamanho">
+                            <option value="10" ${getTamanhoPagina()===10?'selected':''}>10</option>
+                            <option value="20" ${getTamanhoPagina()===20?'selected':''}>20</option>
+                            <option value="30" ${getTamanhoPagina()===30?'selected':''}>30</option>
+                            <option value="50" ${getTamanhoPagina()===50?'selected':''}>50</option>
+                            <option value="100" ${getTamanhoPagina()===100?'selected':''}>100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+        paginador.style.display = 'block';
+        const btnPrimeira = document.getElementById('pag-primeira');
+        const btnAnt = document.getElementById('pag-anterior');
+        const btnProx = document.getElementById('pag-proximo');
+        const btnUltima = document.getElementById('pag-ultima');
+        const tamanhoSel = document.getElementById('paginador-tamanho');
+        document.querySelectorAll('#paginador-container .paginador-btn[data-pagina]').forEach(b=>{
+            b.onclick = function(){ setPaginaAtual(parseInt(this.getAttribute('data-pagina'),10)); renderizarTransacoes(transacoes); };
+        });
+        if (btnPrimeira) btnPrimeira.onclick = function(){ if (getPaginaAtual()>1){ setPaginaAtual(1); renderizarTransacoes(transacoes);} };
+        if (btnAnt) btnAnt.onclick = function(){ if (getPaginaAtual()>1){ setPaginaAtual(getPaginaAtual()-1); renderizarTransacoes(transacoes);} };
+        if (btnProx) btnProx.onclick = function(){ if (getPaginaAtual()<totalPaginas){ setPaginaAtual(getPaginaAtual()+1); renderizarTransacoes(transacoes);} };
+        if (btnUltima) btnUltima.onclick = function(){ if (getPaginaAtual()<totalPaginas){ setPaginaAtual(totalPaginas); renderizarTransacoes(transacoes);} };
+        if (tamanhoSel) tamanhoSel.onchange = function(){ setTamanhoPagina(parseInt(this.value,10)); setPaginaAtual(1); renderizarTransacoes(transacoes); };
+        if (window._paginadorKeyHandler) document.removeEventListener('keydown', window._paginadorKeyHandler);
+        window._paginadorKeyHandler = function(e){
+            if (e.key === 'ArrowLeft' && getPaginaAtual()>1) { setPaginaAtual(getPaginaAtual()-1); renderizarTransacoes(transacoes); }
+            if (e.key === 'ArrowRight' && getPaginaAtual()<totalPaginas) { setPaginaAtual(getPaginaAtual()+1); renderizarTransacoes(transacoes); }
+        };
+        document.addEventListener('keydown', window._paginadorKeyHandler);
+    }
     configurarEventosSelecao();
 }
 
@@ -386,6 +459,15 @@ function filtrarTransacoes() {
             return mesTransacao === parseInt(filtroAtual.mes, 10);
         });
     }
+    // Filtro por ano
+    if (filtroAtual.ano !== null && filtroAtual.ano !== '') {
+        transacoesFiltradas = transacoesFiltradas.filter(transacao => {
+            const parteData = (transacao.data_transacao || '').substring(0, 10);
+            const anoStr = parteData.split('-')[0];
+            const anoTransacao = parseInt(anoStr, 10);
+            return anoTransacao === parseInt(filtroAtual.ano, 10);
+        });
+    }
 
     // Filtro por categoria
     if (filtroAtual.categoria) {
@@ -394,13 +476,9 @@ function filtrarTransacoes() {
         );
     }
 
-    // Filtro por tipo
-    if (filtroAtual.tipo) {
-        transacoesFiltradas = transacoesFiltradas.filter(transacao => 
-            transacao.tipo === filtroAtual.tipo
-        );
-    }
+    // Tipo não é necessário pois categoria já define receita/despesa
 
+    setPaginaAtual(1);
     renderizarTransacoes(transacoesFiltradas);
     // atualizarResumo(transacoesFiltradas);
 }
@@ -423,6 +501,7 @@ function carregarTransacoes() {
             } else {
                 todasTransacoes = [];
             }
+            carregarAnosFiltro();
             filtrarTransacoes();
             console.log('Transações carregadas da API:', todasTransacoes.length, 'transações');
         })
@@ -502,8 +581,8 @@ function excluirTransacao(id) {
 window.inicializarTransacoes = function() {
     // Configurar filtros
     const filtroMes = document.getElementById('filtro-mes');
+    const filtroAno = document.getElementById('filtro-ano');
     const filtroCategoria = document.getElementById('filtro-categoria');
-    const filtroTipo = document.getElementById('filtro-tipo');
     
     if (filtroMes) {
         filtroMes.addEventListener('change', function() {
@@ -514,6 +593,15 @@ window.inicializarTransacoes = function() {
         filtroAtual.mes = null;
         filtroMes.value = '';
     }
+    if (filtroAno) {
+        filtroAno.addEventListener('change', function() {
+            filtroAtual.ano = this.value ? parseInt(this.value, 10) : null;
+            filtrarTransacoes();
+        });
+        // Padrão: todos os anos
+        filtroAtual.ano = null;
+        filtroAno.value = '';
+    }
 
     if (filtroCategoria) {
         filtroCategoria.addEventListener('change', function() {
@@ -522,14 +610,8 @@ window.inicializarTransacoes = function() {
         });
     }
 
-    if (filtroTipo) {
-        filtroTipo.addEventListener('change', function() {
-            filtroAtual.tipo = this.value;
-            filtrarTransacoes();
-        });
-    }
-
     carregarCategoriasFiltro();
+    carregarAnosFiltro();
     filtrarTransacoes();
     // atualizarResumo(todasTransacoes);
     carregarTransacoes();
@@ -562,6 +644,7 @@ if (document.readyState === 'loading') {
 // Renderização imediata com dados do servidor para evitar estado vazio
 (function primeiraRenderizacao(){
     try {
+        carregarAnosFiltro();
         filtrarTransacoes();
         // atualizarResumo(todasTransacoes);
     } catch(e) {}
@@ -625,6 +708,28 @@ function atualizarBarraSelecao() {
     if (c) c.textContent = selecionados.size+' selecionadas';
 }
 
+function carregarAnosFiltro() {
+    const select = document.getElementById('filtro-ano');
+    if (!select) return;
+    const anos = new Set();
+    (todasTransacoes || []).forEach(t => {
+        const parteData = (t.data_transacao || '').substring(0,10);
+        const anoStr = parteData.split('-')[0];
+        const n = parseInt(anoStr, 10);
+        if (!isNaN(n)) anos.add(n);
+    });
+    if (anos.size === 0) {
+        const atual = new Date().getFullYear();
+        anos.add(atual);
+        anos.add(atual - 1);
+    }
+    const ordenados = Array.from(anos).sort((a,b)=>b-a);
+    const atualValor = select.value;
+    select.innerHTML = '<option value="">Todos os anos</option>' + ordenados.map(a => `<option value="${a}">${a}</option>`).join('');
+    if (atualValor && Array.from(select.options).some(o=>o.value===atualValor)) {
+        select.value = atualValor;
+    }
+}
 async function excluirSelecionadas() {
     if (selecionados.size === 0) return;
     if (!confirm('Excluir transações selecionadas?')) return;

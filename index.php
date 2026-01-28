@@ -50,11 +50,30 @@ if (!file_exists($arquivo_pagina_inicial)) {
 
 <head>
     <meta charset="UTF-8">
-    <base href="/">
+    <?php
+    $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+    $uri_sem_query = strtok($uri, '?');
+    $caminho_base = $uri_sem_query;
+    if (substr($caminho_base, -10) === '/index.php') {
+        $caminho_base = substr($caminho_base, 0, -10);
+    }
+    $pos_paginas = strpos($caminho_base, '/paginas/');
+    if ($pos_paginas !== false) {
+        $caminho_base = substr($caminho_base, 0, $pos_paginas);
+    }
+    $pos_modais = strpos($caminho_base, '/modais/');
+    if ($pos_modais !== false) {
+        $caminho_base = substr($caminho_base, 0, $pos_modais);
+    }
+    if (substr($caminho_base, -1) !== '/') {
+        $caminho_base .= '/';
+    }
+    ?>
+    <base href="<?= htmlspecialchars($caminho_base) ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanças Pessoais</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -173,7 +192,10 @@ if (!file_exists($arquivo_pagina_inicial)) {
                     class="w-12 h-12 rounded-full flex items-center justify-center text-neutral-500 hover:bg-white/5 transition-all">
                     <i class="fas fa-user text-lg menu-item"></i>
                 </a>
-                <?php if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'admin'): ?>
+                <?php
+                $perfil_menu_admin = (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'admin')
+                    || (isset($usuario_atual['perfil']) && $usuario_atual['perfil'] === 'admin');
+                if ($perfil_menu_admin): ?>
                     <a href="javascript:void(0)" onclick="carregarPagina('admin')"
                         class="w-12 h-12 rounded-full flex items-center justify-center text-neutral-500 hover:bg-white/5 transition-all">
                         <i class="fas fa-tools text-lg menu-item"></i>
@@ -205,7 +227,7 @@ if (!file_exists($arquivo_pagina_inicial)) {
         </div>
     </div>
 
-    <script src="/assets/js/app.js"></script>
+    <script src="assets/js/app.js"></script>
 
     <script>
         var paginaAtual = '<?= $pagina_inicial ?>';
@@ -247,6 +269,8 @@ if (!file_exists($arquivo_pagina_inicial)) {
                     definirItemAtivo(pagina);
                     paginaAtual = pagina;
                     localStorage.setItem('paginaAtual', pagina);
+                    var conteudo = document.getElementById('conteudo-principal');
+                    if (conteudo) conteudo.classList.remove('sem-padding');
 
                     // Inicializadores automáticos
                     setTimeout(() => {
@@ -271,6 +295,8 @@ if (!file_exists($arquivo_pagina_inicial)) {
             definirItemAtivo(paginaAtual);
             // Salva o estado inicial na History API para o F5 funcionar
             if (!history.state) history.replaceState({ pagina: paginaAtual }, "", window.location.search);
+            var conteudo = document.getElementById('conteudo-principal');
+            if (conteudo) conteudo.classList.remove('sem-padding');
         });
 
         // Funções de Tema e Menu (mantidas)

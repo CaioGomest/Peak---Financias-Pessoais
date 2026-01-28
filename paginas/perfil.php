@@ -272,7 +272,6 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
 
         const ctx = canvas.getContext("2d");
 
-        // 🔹 Labels (pilares de performance)
         const labels = [
             "Capital",
             "Controle",
@@ -282,8 +281,6 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
             "Ascensão"
         ];
 
-        // 🔹 Dados de performance (0 a 100)
-        // depois você pode calcular isso dinamicamente
         const performanceData = [
             75, // Capital
             68, // Controle
@@ -293,7 +290,24 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
             78  // Ascensão
         ];
 
-        // console.log("Dados de performance:", performanceData);
+        const coresTema = temaEscuro ? {
+            tick: "#aaa",
+            grid: "rgba(255,255,255,0.08)",
+            angle: "rgba(255,255,255,0.12)",
+            label: "#e5e7eb",
+            pontoBorda: "#000",
+            gradStart: "rgba(251, 191, 36, 0.35)",
+            gradEnd: "rgba(251, 191, 36, 0.05)"
+        } : {
+            tick: "#6b7280",
+            grid: "rgba(0,0,0,0.08)",
+            angle: "rgba(0,0,0,0.12)",
+            label: "#374151",
+            pontoBorda: "#111827",
+            gradStart: "rgba(251, 191, 36, 0.25)",
+            gradEnd: "rgba(251, 191, 36, 0.08)"
+        };
+
         const gradient = ctx.createRadialGradient(
             canvas.width / 2,
             canvas.height / 2,
@@ -302,8 +316,8 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
             canvas.height / 2,
             canvas.width / 1.2
         );
-        gradient.addColorStop(0, "rgba(251, 191, 36, 0.35)");
-        gradient.addColorStop(1, "rgba(251, 191, 36, 0.05)");
+        gradient.addColorStop(0, coresTema.gradStart);
+        gradient.addColorStop(1, coresTema.gradEnd);
 
         if (window.graficoPerformance) {
             window.graficoPerformance.destroy();
@@ -321,7 +335,7 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
                         borderColor: "#fbbf24",
                         borderWidth: 2,
                         pointBackgroundColor: "#fbbf24",
-                        pointBorderColor: "#000",
+                        pointBorderColor: coresTema.pontoBorda,
                         pointHoverBackgroundColor: "#fff",
                         pointHoverBorderColor: "#fbbf24",
                         pointRadius: 4,
@@ -338,7 +352,7 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
                         max: 100,
                         ticks: {
                             stepSize: 20,
-                            color: "#aaa",
+                            color: coresTema.tick,
                             backdropColor: "transparent",
                             font: {
                                 size: 10,
@@ -346,13 +360,13 @@ $url_avatar_perfil = $foto_usuario ? $foto_usuario : ('https://ui-avatars.com/ap
                             callback: (value) => value + "%",
                         },
                         grid: {
-                            color: "rgba(255,255,255,0.08)",
+                            color: coresTema.grid,
                         },
                         angleLines: {
-                            color: "rgba(255,255,255,0.12)",
+                            color: coresTema.angle,
                         },
                         pointLabels: {
-                            color: "#e5e7eb",
+                            color: coresTema.label,
                             font: {
                                 size: 12,
                                 weight: "500",

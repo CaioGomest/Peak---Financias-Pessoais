@@ -240,13 +240,21 @@ function inativarPlano(id){
 function carregarAssinaturas(){
     fetch('funcoes/admin_assinaturas.php?api=admin_assinaturas&acao=listar')
         .then(r=>r.json()).then(d=>{
+            if (!Array.isArray(d) || d.length === 0) {
+                document.getElementById('lista-assinaturas').innerHTML = '<div class="estado-vazio"><h3>Nenhuma assinatura encontrada</h3><p>Quando houver assinaturas, elas aparecerão aqui.</p></div>';
+                return;
+            }
             var html = '<table class="tabela"><thead><tr><th>ID</th><th>Usuário</th><th>Plano</th><th>Status</th><th>Ações</th></tr></thead><tbody>';
             d.forEach(function(a){
-                html += '<tr><td>'+a.id+'</td><td>'+a.usuario_id+'</td><td>'+a.plano_id+'</td><td>'+a.status+'</td>'+
+                var usuario = a.usuario_nome || a.usuario_id || '';
+                var plano = a.plano_nome || a.plano_id || '';
+                html += '<tr><td>'+a.id+'</td><td>'+usuario+'</td><td>'+plano+'</td><td>'+a.status+'</td>'+
                         '<td><button class="botao botao-secundario" onclick="revogar('+a.id+')">Revogar</button></td></tr>';
             });
             html += '</tbody></table>';
             document.getElementById('lista-assinaturas').innerHTML = html;
+        }).catch(function(){
+            document.getElementById('lista-assinaturas').innerHTML = '<div class="estado-vazio"><h3>Erro ao carregar assinaturas</h3><p>Tente novamente mais tarde.</p></div>';
         });
 }
 

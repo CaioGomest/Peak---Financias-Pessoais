@@ -3,7 +3,7 @@ require_once __DIR__ . '/../funcoes/usuario.php';
 require_once __DIR__ . '/../config/database.php';
 verificarLogin();
 global $database;
-$planos = $database->select("SELECT id, nome, descricao, preco, stripe_price_id FROM planos WHERE ativo = 1 ORDER BY id");
+$planos = $database->select("SELECT id, nome, descricao, preco FROM planos WHERE ativo = 1 ORDER BY id");
 $usuarioId = obterUsuarioId();
 $assin = $database->select("SELECT a.id, a.status, a.plano_id, a.metodo_pagamento, a.gateway_transacao_id, p.nome FROM assinaturas a LEFT JOIN planos p ON p.id=a.plano_id WHERE a.usuario_id = ? ORDER BY a.id DESC LIMIT 1", [$usuarioId]);
 $cfgRows = $database->select("SELECT chave, valor FROM configuracoes_sistema WHERE chave IN ('gateway_padrao','stripe_api_key')");
@@ -86,12 +86,12 @@ if (substr($base_app, -1) !== '/') { $base_app .= '/'; }
                         <div class="titulo-secao"><?php echo htmlspecialchars($p['descricao']); ?></div>
                     </div>
                     <div>
-                <?php if ($gatewayPadrao === 'stripe' && (float)$p['preco'] > 0): ?>
+                <?php if ((float)$p['preco'] == 0): ?>
+                    <button class="botao botao-primario" onclick="assinarGratuito(<?php echo (int)$p['id']; ?>)"><i class="fas fa-check"></i> Ativar</button>
+                <?php elseif ($gatewayPadrao === 'stripe' && (float)$p['preco'] > 0): ?>
                     <button class="botao botao-primario" onclick="assinar(<?php echo (int)$p['id']; ?>)"><i class="fas fa-check"></i> Assinar</button>
-                <?php elseif ($gatewayPadrao !== 'stripe'): ?>
-                    <span class="badge status-error">Gateway não suportado</span>
                 <?php else: ?>
-                    <span class="badge status-pending">Indisponível</span>
+                    <span class="badge status-error">Gateway não configurado</span>
                 <?php endif; ?>
                     </div>
                 </div>
@@ -134,6 +134,22 @@ function assinar(planoId){
             } 
         })
         .catch(function(e){ alert('Erro ao iniciar checkout. Verifique o gateway.'); console.error(e); });
+}
+function assinarGratuito(planoId){
+    fetch(obterUrl('funcoes/admin_assinaturas.php?api=admin_assinaturas&acao=criar_gratuita'), {
+        method: 'POST',
+        body: new URLSearchParams({ plano_id: String(planoId) })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+        if (d && d.sucesso) {
+            alert('Assinatura gratuita ativada');
+            window.location.reload();
+        } else {
+            alert('Não foi possível ativar: ' + (d.erro || 'erro'));
+        }
+    })
+    .catch(function(){ alert('Erro de rede ao ativar assinatura gratuita'); });
 }
 </script>
 <?php if (!$esta_no_index): ?>

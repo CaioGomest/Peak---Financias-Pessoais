@@ -15,6 +15,7 @@
     --cor-transferencia: #fbbf24;
     --sombra-padrao: 0 4px 6px rgba(0, 0, 0, 0.3);
     --espaco-lateral-conteudo: 50px;
+    --largura-maxima-conteudo: 1200px;
 }
 
 body.tema-claro {
@@ -150,9 +151,14 @@ body.tema-claro .app-avatar {
 .conteudo {
     flex: 1;
     padding: 0 var(--espaco-lateral-conteudo);
-    padding-bottom: 80px; /* Espaço para o menu inferior */
+    padding-bottom: 140px; /* Espaço ampliado para não cobrir o paginador */
     max-width: 100%;
     overflow-x: hidden;
+}
+
+.container {
+    max-width: var(--largura-maxima-conteudo);
+    margin: 0 auto;
 }
 
 /* Manter headers roxos em largura total, compensando o padding do conteúdo */
@@ -164,6 +170,13 @@ body.tema-claro .app-avatar {
     margin-right: calc(-1 * var(--espaco-lateral-conteudo));
 }
 
+/* Full-bleed consistente no Admin baseado no padding do conteúdo */
+.admin-container .dashboard-header {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    left: auto;
+}
 /* Conteúdo com padding interno */
 .conteudo-interno {
     padding: 0 20px;
@@ -813,7 +826,7 @@ body.tema-claro .opcao-menu span {
 }
 
 /* Admin */
-.admin-container { padding: 0; max-width: 100%; margin: 0; }
+.admin-container { padding: 0; max-width: var(--largura-maxima-conteudo); margin: 0 auto; }
 .admin-abas { display: flex; gap: 10px; margin-bottom: 16px; }
 .form-linha { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: center; }
@@ -839,6 +852,18 @@ body.tema-claro .opcao-menu span {
   .metrics-header { justify-content: space-between; }
   .metrics-header .form-select { max-width: 100%; }
 }
+
+.admin-container .dashboard-header {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 0;
+  color: var(--cor-texto);
+  box-shadow: none;
+}
+.admin-container .dashboard-header .dashboard-background { display: none; }
+.admin-container .dashboard-header .header-info h1 { color: var(--cor-texto); }
+.admin-container .dashboard-header .header-info p { color: var(--cor-texto-secundario); }
 
 .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
 .status-ok { background: rgba(76,175,80,0.15); color: #4CAF50; border: 1px solid rgba(76,175,80,0.35); }
@@ -2220,6 +2245,70 @@ body.tema-claro .btn-nova-categoria:hover { background: rgba(255, 255, 255, 0.95
     gap: 1.5rem;
 }
 
+/* Paginador estilizado */
+#paginador-container { margin-top: 8px; }
+.paginador {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+    box-shadow: var(--sombra-padrao);
+    position: static;
+    margin: 10px auto;
+    width: max-content;
+}
+.paginador-info {
+    color: var(--cor-texto-secundario);
+    font-size: 0.9rem;
+}
+.paginador-controles {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.paginador-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--cor-borda);
+    background: rgba(255,255,255,0.06);
+    color: var(--cor-texto);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.paginador-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+.paginador-btn[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+.paginador-btn.ativo {
+    background: var(--cor-destaque);
+    border-color: var(--cor-destaque);
+    color: #fff;
+}
+.paginador-seletor {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    color: var(--cor-texto-secundario);
+    font-size: 0.85rem;
+}
+.paginador-seletor select {
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    padding: 0 10px;
+}
+@media (max-width: 600px) {
+    .paginador { flex-direction: column; gap: 10px; padding: 10px 12px; }
+    .paginador-controles { flex-wrap: wrap; justify-content: center; }
+}
 /* Grupo de transações por data */
 .grupo-data {
     animation: fadeInUp 0.6s ease forwards;
